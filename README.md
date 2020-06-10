@@ -1,4 +1,18 @@
-# Using pipenv
+# TIL 2020 Team Mind Games notebooks
+
+All our notebooks are stored here. Read the stuff below to acquaint urself with the workflow. Remember to read the [Workflow](#workflow) segment!
+
+- [TIL 2020 Team Mind Games notebooks](#til-2020-team-mind-games-notebooks)
+- [Using `pipenv`](#using-pipenv)
+  - [Getting Started](#getting-started)
+  - [Installing/Managing Libraries/Dependencies](#installingmanaging-librariesdependencies)
+  - [Running Programs](#running-programs)
+  - [Running Jupyter](#running-jupyter)
+- [Workflow](#workflow)
+  - [Dataset/Directory standardization](#datasetdirectory-standardization)
+
+
+# Using `pipenv`
 ## Getting Started
 1. Install `pipenv` with `pip3 install pipenv`
 2. Clone this repository
@@ -27,7 +41,7 @@ Instructions based off of [this guide](https://pipenv.pypa.io/en/latest/basics/#
 When you pull dependancies you should have everything you need to run the notebooks.
 I have created folders for each part of the competition (CV and NLP). Save your notebooks there
 
-## Dataset
+## Dataset/Directory standardization
  I am not gonna push the dataset to Github. For the sake of standardizing paths, create a folder called `data` and extract the contents of the [`Download All` zip file](https://www.kaggle.com/c/til2020/data?select=TIL_NLP_train_dataset.csv) here. Here is how the overall directory looks on my pc
 
  ```

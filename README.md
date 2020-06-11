@@ -10,13 +10,17 @@ All our notebooks are stored here. Read the stuff below to acquaint urself with 
   - [Running Jupyter](#running-jupyter)
 - [Workflow](#workflow)
   - [Dataset/Directory standardization](#datasetdirectory-standardization)
+  - [Saving models](#saving-models)
 
 
 # Using `pipenv`
 ## Getting Started
 1. Install `pipenv` with `pip3 install pipenv`
 2. Clone this repository
-3. Run `pipenv install` to pull dependencies (so far it's just pandas)
+3. Run `pipenv install` to pull dependencies
+4. (Windows only) Special module for Windows users
+   1. Enter shell with `pipenv shell`
+   2. Run `pip install pywin32`
    
 ## Installing/Managing Libraries/Dependencies
 - Install dependencies for this repository with `pipenv install XXX` and inform everybody of any new dependencies you have pushed into the repo
@@ -42,14 +46,21 @@ When you pull dependancies you should have everything you need to run the notebo
 I have created folders for each part of the competition (CV and NLP). Save your notebooks there
 
 ## Dataset/Directory standardization
- I am not gonna push the dataset to Github. For the sake of standardizing paths, create a folder called `data` and extract the contents of the [`Download All` zip file](https://www.kaggle.com/c/til2020/data?select=TIL_NLP_train_dataset.csv) here. Here is how the overall directory looks on my pc
+ I am not gonna push the dataset to Github. For the sake of standardizing paths, create a folder called `data` and extract the contents of the [`Download All` zip file](https://www.kaggle.com/c/til2020/data?select=TIL_NLP_train_dataset.csv) here. I have also created a `saved_models` folder within the two parts (CV and NLP) to save the models we have trained locally. [Refer to the next section for more info](#saving-models)
+ 
+ 
+  Here is how the overall directory looks on my pc. Folders that are not pushed to the Github repo are marked with *
 
  ```
- .
+.
 ├── CV
-│   └── CV-Notebooks-go-here!
-├── data
+│   ├── CV-Notebooks-go-here!
+│   ├── ravyu_RESNET50_defaulttemplate.ipynb
+│   └── saved_models*
+├── data*
 │   ├── NLP_submission_example.csv
+│   ├── resnet50_weights_tf_dim_ordering_tf_kernels.h5
+│   ├── resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5
 │   ├── TIL_NLP_test_dataset.csv
 │   ├── TIL_NLP_train_dataset.csv
 │   ├── train
@@ -67,5 +78,8 @@ I have created folders for each part of the competition (CV and NLP). Save your 
 ├── Pipfile.lock
 └── README.md
 
-8 directories, 12 files
+9 directories, 15 files
 ```
+
+## Saving models
+If you want to save any trained models you can do so. These models are usually large in size (mine was 90+ mb), so do not push these to GitHub. I will figure out some other way to share these files. 

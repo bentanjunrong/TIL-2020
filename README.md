@@ -11,6 +11,7 @@ All our notebooks are stored here. Read the stuff below to acquaint urself with 
 - [Workflow](#workflow)
   - [Dataset/Directory standardization](#datasetdirectory-standardization)
   - [Saving models](#saving-models)
+    - [Installing Git LFS](#installing-git-lfs)
 
 
 # Using `pipenv`
@@ -56,7 +57,7 @@ I have created folders for each part of the competition (CV and NLP). Save your 
 ├── CV
 │   ├── CV-Notebooks-go-here!
 │   ├── ravyu_RESNET50_defaulttemplate.ipynb
-│   └── saved_models*
+│   └── saved_models
 ├── data*
 │   ├── NLP_submission_example.csv
 │   ├── resnet50_weights_tf_dim_ordering_tf_kernels.h5
@@ -82,4 +83,9 @@ I have created folders for each part of the competition (CV and NLP). Save your 
 ```
 
 ## Saving models
-If you want to save any trained models you can do so. These models are usually large in size (mine was 90+ mb), so do not push these to GitHub. I will figure out some other way to share these files. 
+If you want to save any trained models you can do so. These models are usually large in size (mine was 90+ mb), ~~so do not push these to GitHub. I will figure out some other way to share these files. ~~ Ok, let's use [git lfs](https://git-lfs.github.com/)
+
+### Installing Git LFS
+1. Follow step 1 of getting started [from the Git LFS website](https://git-lfs.github.com/)
+2. That's it! I have already setup the repo to push the folders CV/saved_models and NLP/saved_models(WIP) through LFS. So just push and pull as per normal.
+

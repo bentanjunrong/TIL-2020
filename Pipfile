@@ -13,6 +13,7 @@ scipy = "*"
 scikit-learn = "*"
 tensorflow = "*"
 spacy = "*"
+pathlib = "*"
 
 [requires]
 python_version = "3.6"

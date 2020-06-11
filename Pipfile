@@ -15,6 +15,7 @@ tensorflow = "*"
 spacy = "*"
 pathlib = "*"
 pillow = "*"
+pywin32 = "*"
 
 [requires]
 python_version = "3.6"

@@ -22,6 +22,7 @@ All our notebooks are stored here. Read the stuff below to acquaint urself with 
 4. (Windows only) Special module for Windows users
    1. Enter shell with `pipenv shell`
    2. Run `pip install pywin32`
+5. Setup [git LFS](#installing-git-lfs)
    
 ## Installing/Managing Libraries/Dependencies
 - Install dependencies for this repository with `pipenv install XXX` and inform everybody of any new dependencies you have pushed into the repo

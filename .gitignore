@@ -1,2 +1,5 @@
 data/*
 
+CV/saved_models/YOLO_model/*
+CV/saved_models/YOLO_model.h5
+CV/YOLO/keras_model_generator.py

@@ -15,6 +15,7 @@ tensorflow = "*"
 spacy = "*"
 pathlib = "*"
 pillow = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.6"

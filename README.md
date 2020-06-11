@@ -3,19 +3,22 @@
 All our notebooks are stored here. Read the stuff below to acquaint urself with the workflow. Remember to read the [Workflow](#workflow) segment!
 
 - [TIL 2020 Team Mind Games notebooks](#til-2020-team-mind-games-notebooks)
-- [Using `pipenv`](#using-pipenv)
-  - [Getting Started](#getting-started)
+- [Getting Started](#getting-started)
+  - [Setting up `pipenv` environment](#setting-up-pipenv-environment)
+    - [Installing Git LFS](#installing-git-lfs)
   - [Installing/Managing Libraries/Dependencies](#installingmanaging-librariesdependencies)
   - [Running Programs](#running-programs)
   - [Running Jupyter](#running-jupyter)
 - [Workflow](#workflow)
   - [Dataset/Directory standardization](#datasetdirectory-standardization)
   - [Saving models](#saving-models)
-    - [Installing Git LFS](#installing-git-lfs)
+  - [Git LFS](#git-lfs)
+    - [**Important note**](#important-note)
 
 
-# Using `pipenv`
-## Getting Started
+
+# Getting Started
+## Setting up `pipenv` environment
 1. Install `pipenv` with `pip3 install pipenv`
 2. Clone this repository
 3. Run `pipenv install` to pull dependencies
@@ -23,7 +26,11 @@ All our notebooks are stored here. Read the stuff below to acquaint urself with 
    1. Enter shell with `pipenv shell`
    2. Run `pip install pywin32`
 5. Setup [git LFS](#installing-git-lfs)
-   
+
+### Installing Git LFS
+1. Follow step 1 of getting started [from the Git LFS website](https://git-lfs.github.com/) if you have not installed git LFS on your computer
+2. That's it! I have already initialized git lfs in this repo so no further setup required. Use `git lfs track <file(s)>` so that the specified `file(s)` are handled by LFS. After that just push and pull as per normal.
+
 ## Installing/Managing Libraries/Dependencies
 - Install dependencies for this repository with `pipenv install XXX` and inform everybody of any new dependencies you have pushed into the repo
 - When pulling new commits from the repo, its a good practice to run `pipenv update` to ensure you pull any new dependencies
@@ -41,6 +48,8 @@ All our notebooks are stored here. Read the stuff below to acquaint urself with 
 2. I take reference to [this guide](https://jupyterlab.readthedocs.io/en/stable/getting_started/overview.html)
 
 Instructions based off of [this guide](https://pipenv.pypa.io/en/latest/basics/#general-recommendations-version-control)
+
+
 
 # Workflow
 
@@ -84,9 +93,20 @@ I have created folders for each part of the competition (CV and NLP). Save your 
 ```
 
 ## Saving models
-If you want to save any trained models you can do so. These models are usually large in size (mine was 90+ mb), ~~so do not push these to GitHub. I will figure out some other way to share these files. ~~ Ok, let's use [git lfs](https://git-lfs.github.com/)
+If you want to save any trained models you can do so. These models are usually large in size (mine was 90+ mb). Use [git lfs](https://git-lfs.github.com/) for any binary files larger than 100mb.
 
-### Installing Git LFS
-1. Follow step 1 of getting started [from the Git LFS website](https://git-lfs.github.com/)
-2. That's it! I have already setup the repo to push the folders CV/saved_models and NLP/saved_models(WIP) through LFS. So just push and pull as per normal.
+
+## Git LFS
+If you followed the [**Getting started**](#getting-started) section, you would have installed git LFS, which allows you to upload binary files larger than 100mb. 
+
+- Use `git lfs track <file(s)>` so that the specified `file(s)` are handled by LFS (reflected in the [.gitattributes file](.gitattributes)). After that just push and pull as per normal.
+
+
+### **Important note**
+Please [read this](https://help.github.com/en/github/managing-large-files/about-storage-and-bandwidth-usage) to understand how quotas are filled. Basically:
+1. Only push using LFS once I (Ravyu) have agreed to let you do so (since it counts against my quota).
+2. Try to restrict pushing with LFS to critical stuff like finalized models, etc.
+   1. If there is something less critical but still worth sharing with the team, we will use something else (GDrive, my cloud server, etc.,)
+   2. Remember, anything less than 100mb works just fine without LFS.
+   3. Don't any push or you pay me $5 so that I can purchase more quota!
 

@@ -11,10 +11,10 @@ def evaluate(truth_annot, ans_annot):
     false_positives = np.zeros((0,))
     true_positives = np.zeros((0,))
     scores = np.zeros((0,))
-
+    
     counter = 0
     for idx,row in ans_annot.iterrows(): # Each detection/annotation
-        TP = False
+        # TP = False
         
         scores = np.append(scores, row['score'])
         try:
@@ -31,6 +31,8 @@ def evaluate(truth_annot, ans_annot):
                 if iou > max_iou:
                     max_iou = iou
                     max_iou_truth = truth_row
+            
+            
             if max_iou >= 0.5 and max_iou_truth['detected'] == False: # Detection is a prediction
                 TP = True
                 counter += 1
@@ -40,7 +42,7 @@ def evaluate(truth_annot, ans_annot):
             else:
                 false_positives = np.append(false_positives, 1)
                 true_positives  = np.append(true_positives, 0)
-    
+    # sorts by score
     indices         = np.argsort(-scores)
     false_positives = false_positives[indices]
     true_positives  = true_positives[indices]
@@ -57,7 +59,7 @@ def evaluate(truth_annot, ans_annot):
 
 def calc_MAP(precision, recall):
     cumulatives = []
-    local_max = 1
+    local_max = precision[0]
     length = 1
     for val in precision:
         if val < local_max: #drop detected

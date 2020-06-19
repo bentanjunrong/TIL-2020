@@ -12,10 +12,6 @@ def evaluate(truth_annot, ans_annot):
     true_positives = np.zeros((0,))
     scores = np.zeros((0,))
 
-    # false_positives = []
-    # true_positives = []
-    # scores = []
-
     counter = 0
     for idx,row in ans_annot.iterrows(): # Each detection/annotation
         TP = False
@@ -26,25 +22,24 @@ def evaluate(truth_annot, ans_annot):
         except:
             false_positives = np.append(false_positives, 1)
             true_positives  = np.append(true_positives, 0)
-            # false_positives.append(1)
-            # true_positives.append(0)
             continue
-        else:     
+        else:   
+            max_iou = 0
+            max_iou_truth  = pd.DataFrame()
             for truth_idx, truth_row in truth_group.iterrows():
                 iou = calc_iou(row['bbox'],truth_row['bbox'])
-                if iou >= 0.5 and truth_row['detected'] == False:
-                    TP = True
-                    counter += 1
-                    truth_row['detected'] = True
-                    false_positives = np.append(false_positives, 0)
-                    true_positives  = np.append(true_positives, 1)
-                    # false_positives.append(1)
-                    # true_positives.append(0)
-                else:
-                    false_positives = np.append(false_positives, 1)
-                    true_positives  = np.append(true_positives, 0)
-                    # false_positives.append(1)
-                    # true_positives.append(0)
+                if iou > max_iou:
+                    max_iou = iou
+                    max_iou_truth = truth_row
+            if max_iou >= 0.5 and max_iou_truth['detected'] == False: # Detection is a prediction
+                TP = True
+                counter += 1
+                max_iou_truth['detected'] = True
+                false_positives = np.append(false_positives, 0)
+                true_positives  = np.append(true_positives, 1)
+            else:
+                false_positives = np.append(false_positives, 1)
+                true_positives  = np.append(true_positives, 0)
     
     indices         = np.argsort(-scores)
     false_positives = false_positives[indices]

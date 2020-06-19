@@ -1,5 +1,5 @@
-from json_to_pd import json_to_pd
-from evaluator import evaluate, calc_MAP
+from utils.json_to_pd import json_to_pd
+from utils.evaluator import evaluate, calc_MAP
 import argparse
 import sys
 

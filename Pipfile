@@ -16,6 +16,10 @@ spacy = "*"
 pathlib = "*"
 pillow = "*"
 matplotlib = "*"
+tensorflow-datasets = "*"
+seaborn = "*"
+wordcloud = "*"
+scikit-multilearn = "*"
 
 [requires]
 python_version = "3.6"

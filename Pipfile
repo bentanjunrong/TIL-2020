@@ -17,6 +17,7 @@ pathlib = "*"
 pillow = "*"
 matplotlib = "*"
 opencv-python = "*"
+pypng = "*"
 
 [requires]
 python_version = "3.6"

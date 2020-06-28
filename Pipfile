@@ -20,8 +20,8 @@ tensorflow-datasets = "*"
 seaborn = "*"
 wordcloud = "*"
 scikit-multilearn = "*"
-opencv-python = "*"
 pypng = "*"
+opencv-contrib-python = "*"
 
 [requires]
 python_version = "3.6"

@@ -55,7 +55,6 @@ def start_video(is_flipped = False):
             print('photo taken and analysed successfully.')
 
         if cv2.waitKey(16) == 108:
-            print(type(cap), type(flag), type(frame))
             # l key to take last pic
             print('taking last photo...')
             val = loop.run_until_complete(take_pic(frame, True)) # 0 (pitch black) and 255 (bright white)

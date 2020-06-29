@@ -1,5 +1,5 @@
-from utils.fake_EP_api import Robot
-# from EP_api import Robot, findrobotIP
+# from utils.fake_EP_api import Robot
+from EP_api import Robot, findrobotIP
 from utils.shortest_path import find_shortest_path
 import time
 import cv2
@@ -95,12 +95,15 @@ def nearest_90_angle(): # tested
 def align(current_loc): #Tested (notes above)
     dir_vector = tuple(numpy.subtract(current_loc, start_loc))
     
-    x_disp = start_disp + abs(dir_vector[0])*seg_sep
-    y_disp = dir_vector[1]*seg_sep # no absolute here because y can be negative or positive
+    x_disp = float(start_disp + abs(dir_vector[0])*seg_sep)
+    y_disp = float(dir_vector[1]*seg_sep) # no absolute here because y can be negative or positive
     print(x_disp,y_disp)
     snap_angle = nearest_90_angle() # finds nearest 90 degree angle. I call it snapping lmao
     turn_to_angle(snap_angle)
-    x_robot, y_robot = float(robot._sendcommand('chassis position ?').split(' ')[0:1])
+    x_robot, y_robot = robot._sendcommand('chassis position ?').split(' ')[:2]
+    x_robot = float(x_robot)
+    y_robot = float(y_robot)
+    print(x_robot,y_robot)
     # x_robot, y_robot = (0.2,-0.6) # TEST
     if snap_angle == 0:
         x = x_disp - x_robot
@@ -129,6 +132,7 @@ def navigate_start_to_end(grid):
     print (path)
     moveforward(start_disp) # enter into first junction (untested distance)
     current_loc = path.pop()
+    align(current_loc)
     while current_loc is not end_loc: # navigate to segment where the end marker is next to.
         turn_to_next(current_loc,path[-1]) # checks if robot needs to face another direction before moving forward
         depth, trimmed_path = check_depth(current_loc,path) # check how many segments robot needs to move forward (should be multiples of 2) and the trimmed path (removes all segments before the ending segment)
@@ -138,6 +142,7 @@ def navigate_start_to_end(grid):
         align(current_loc) # ensures robot is centered to current junction before calculating next movement
     turn_to_angle(end_angle)
     moveforward(start_disp)
+    waitToStill()
 
 
 # occupancy_grid_test = [
@@ -148,4 +153,5 @@ def navigate_start_to_end(grid):
 occupancy_grid_test = [[1,1,1]]
 navigate_start_to_end(occupancy_grid_test)
 # align((0,0))
+robot.exit()
 

@@ -5,3 +5,4 @@ CV/saved_models/*
 CV/YOLO/keras_model_generator.py
 robomaster/__pycache__/*
 robomaster/utils/__pycache__/*
+.vscode/*

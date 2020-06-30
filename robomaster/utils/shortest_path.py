@@ -38,7 +38,7 @@ def findAllAdjacent(current_loc,grid):
         col = ref_col + search_range[i][1]
         if row < 0 or col < 0: continue
         try:
-            if grid[row][col] == 1:
+            if grid[row][col] == 0:
                 adj.append((row,col))
         except: #out of bounds
             continue

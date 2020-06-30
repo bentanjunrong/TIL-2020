@@ -136,3 +136,9 @@ class Robot():
 		self._sendcommand('quit')
 		self.commandsocket.close()
 		print('All done')
+	
+	def close_stream(self):
+		if self.cap is not None:
+			self.cap.release()
+		self._sendcommand('stream off')
+		

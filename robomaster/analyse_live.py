@@ -1,6 +1,7 @@
 import png
 import cv2
 from Tello_api import *
+from EP_PFscript import navigate_start_to_end
 
 THRESHOLD = 80                              # black threshold
 LENGTH = 9                                  # arena length
@@ -58,6 +59,8 @@ while True:
 
     elif k == 27: # press esc to stop
         tello.exit()
+        print('Your turn bij.')
+        navigate_start_to_end(GRID)
         break
 
     elif k != -1: # press wasdqe to control tello. u,j to control height. t,l to takeoff and land

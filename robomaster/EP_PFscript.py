@@ -16,12 +16,12 @@ except:
 
 # Pathfinding script initialize values (grid related values might need to be changed)
 
-start_disp = 0.4 # the robot is roughly 40cm south of the center of the junction it is facing when it starts. Untested.
+start_disp = 0.5 # the robot is roughly 40cm south of the center of the junction it is facing when it starts. Untested.
 seg_sep = 0.4 # distance between center of two junctions divide by 2 (0.8/2) Untested
 start_angle = 0 # robot starts facing the search and rescue area. DO NOT CHANGE. Breaks align() if not 0
 end_angle = 0 # robot has to end facing the search and rescue area
-start_loc = (0,2) # grid coordinates of the Start marker 
-end_loc = (0,0) # grid coordinates of the End marker
+start_loc = (2,4) # grid coordinates of the Start marker 
+end_loc = (0,6) # grid coordinates of the End marker
 angle_map = { # for turn_to_next
     (-1,0): 0,
     (0,1): 90,
@@ -44,7 +44,7 @@ def waitToStill():
     # return #TEST
 
 def moveforward(dist): # tested
-    robot.move('x {} vxy 0.1'.format(str(dist)))
+    robot.move('x {} vxy 0.2'.format(str(dist)))
     waitToStill()
 
 def get_current_angle():
@@ -150,7 +150,11 @@ def navigate_start_to_end(grid):
 # [1,0,0,0,0,0,1,0,0],
 # [0,1,1,1,1,1,1,1,1]
 # ] 
-occupancy_grid_test = [[1,1,1]]
+occupancy_grid_test = [
+    [1,0,0,0,0,0,0,0,0],
+    [0,1,1,1,1,1,1,1,0],
+    [1,0,0,0,0,0,0,0,0]
+    ]
 navigate_start_to_end(occupancy_grid_test)
 # align((0,0))
 robot.exit()

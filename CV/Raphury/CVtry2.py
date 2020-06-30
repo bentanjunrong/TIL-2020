@@ -53,7 +53,7 @@ print("[INFO] loading model...")
 # and initialize the FPS counter
 print("[INFO] starting video stream...")
 #cap = VideoStream(src=0).start()
-cap = cv2.VideoCapture('TIL_vidtest.mp4')
+# cap = cv2.VideoCapture('TIL_vidtest.mp4')
 
 # Get the names of the output layers
 def getOutputsNames(net):
@@ -107,14 +107,25 @@ def postprocess(frame, outs):
 vid_writer = cv2.VideoWriter(outputFile, cv2.VideoWriter_fourcc('M','J','P','G'), 30, (round(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
 
 
-while not cap.isOpened():
-    cap = cv2.VideoCapture('TIL_vidtest.mp4')
-    
-    print("loading video...")
 
-    # esc to close stream
-    if cv2.waitKey(16) == 27:
-        break
+robot.startvideo()
+while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
+    pass
+
+search_completed = False
+pickup_completed = False
+while True:
+    cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
+    frame = robot.frame
+
+# while not cap.isOpened():
+#     cap = cv2.VideoCapture('TIL_vidtest.mp4')
+    
+#     print("loading video...")
+
+#     # esc to close stream
+#     if cv2.waitKey(16) == 27:
+#         break
 
 while cv2.waitKey(1) < 0:
 

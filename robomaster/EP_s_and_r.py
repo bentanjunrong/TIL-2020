@@ -59,7 +59,7 @@ def align(coords): #Tested (notes above)
     x_robot = float(x_robot)
     y_robot = float(y_robot)
     print(x_robot,y_robot)
-    # x_robot, y_robot = (0.2,-0.6) # TEST
+    
     if snap_angle == 0:
         x = x_dest - x_robot
         y = y_dest - y_robot
@@ -77,6 +77,12 @@ def align(coords): #Tested (notes above)
 
 def go_center():
     align([0,0,0])
+def rescue_grip():
+    robot._sendcommand('robotic_arm moveto x 182 y 0')
+def is_gripped():
+    val = int(robot._sendcommand('robotic_gripper status ?'))
+    if val == 1: return True
+    else: return False
 
 def save_coords():
     target_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
@@ -88,26 +94,30 @@ def flash_green():
 def flash_red():
     robot._sendcommand('led control comp bottom_all r 255 g 0 b 0 effect blink')
     time.sleep(5)
-tagged = [False*3]
+# tagged = [False*3]
 tag_count = 0
-turn_const = 5 # UNTESTED
-dist_thresh = 0.5 # UNTESTED
-
+turn_const = 0.1 # UNTESTED
+dist_thresh = 110 # UNTESTED
+locked_target = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
 
 def search_loop(result):
     detected = result['detect']
     dist = result['dist']
     cat = result['class']
     if detected is False:
-        robot.rotate('5')
+        if locked_target is False:
+            robot.rotate('5')
         waitToStill()
         return False
-    elif dist > dist_thresh or dist < -dist_thresh:
-        turn_angle = -1*dist*turn_const # if dist is negative, will turn left
+    if locked_target is False: 
+        locked_target = True
+        return False
+    if dist > dist_thresh or dist < -dist_thresh:
+        turn_angle = dist*turn_const # if dist is negative, will turn left
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
-    elif cat == 0:
+    if cat == 0:
         moveforward(0.3)
         return False
     else:
@@ -116,9 +126,9 @@ def search_loop(result):
             flash_green()
         else:
             flash_red()
-        tagged[tag_count]  = True
+        # tagged[tag_count]  = True
         tag_count += 1
-        
+        locked_target = False
         if tag_count == 3:
             return True
         else: 
@@ -129,7 +139,23 @@ def search_loop(result):
             return False
 
 
-def s_and_r(target)
+def rescue_loop(result):
+    dist = result['dist']
+    if dist > dist_thresh or dist < -dist_thresh:
+        turn_angle = dist*turn_const # if dist is negative, will turn right
+        robot.rotate(str(turn_angle))
+        waitToStill()
+        return False
+    robot.closearm()
+    if is_gripped():
+        robot.movearm('x 0 y 50')
+        return True
+    else:
+        robot.openarm()
+        robot.move('x 0.1 vxy 0.15') # inch forward. Check for a better way.
+        return False
+
+def s_and_r(target):
     target_cat = target_cat
     robot.rotate('-135')
     robot.startvideo()
@@ -144,17 +170,17 @@ def s_and_r(target)
         cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
         tmp_frame = robot.frame
         cv2.imshow('Live video', tmp_frame) # access the video feed by robot.frame
-        if counter % 30 == 0:
-            result = predict_frame(tmp_frame) # RAPHAEL'S FUNCTION GOES HERE
-            if search_completed is False:
-                search_completed = search_loop(result)
-            elif pickup_completed is False:
-                # pickup_completed = pickup_loop(result)
-                robot.exit()
-                break
-            else:
-                robot.exit()
-                break
+    
+        result = predict_frame(tmp_frame) # RAPHAEL'S FUNCTION GOES HERE
+        if search_completed is False:
+            search_completed = search_loop(result)
+        elif pickup_completed is False:
+            rescue_grip()
+            align(target_coords)
+            pickup_completed = rescue_loop(result)            
+        else:
+            robot.exit()
+            break
                 
             
         k = cv2.waitKey(16) & 0xFF

@@ -101,22 +101,29 @@ def flash_red():
     robot._sendcommand('led control comp bottom_all r 255 g 0 b 0 effect blink')
     time.sleep(5)
 # tagged = [False*3]
+locked_target = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
+
+def lock_on_loop(result):
+    if result: # doll detected
+        locked_target = True
+    else: 
+        robot.rotate('5') # assuming left-to-right sweep
+        waitToStill()
+    
+
+
 tag_count = 0
 turn_const = 0.1 # UNTESTED
 dist_thresh = 110 # UNTESTED
-locked_target = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
+
 
 def search_loop(result):
     detected = result['detect']
     dist = result['dist']
     cat = result['class']
     if detected is False:
-        if locked_target is False:
-            robot.rotate('5')
+        moveforward(0.3)
         waitToStill()
-        return False
-    if locked_target is False: 
-        locked_target = True
         return False
     if dist > dist_thresh or dist < -dist_thresh:
         turn_angle = dist*turn_const # if dist is negative, will turn left
@@ -177,12 +184,25 @@ def s_and_r(target):
         tmp_frame = robot.frame
         cv2.imshow('Live video', tmp_frame) # access the video feed by robot.frame
     
-        result = predict_frame(tmp_frame) # RAPHAEL'S FUNCTION GOES HERE
+        
+        
+        
         if search_completed is False:
-            search_completed = search_loop(result)
+            if locked_target is False:
+                frame = crop_frame_by(frame,7)
+                result = detect_binary(frame)
+                lock_on_loop(result)
+            else:
+                result = detect_object(tmp_frame) # RAPHAEL'S FUNCTION
+                search_completed = search_loop(result)
         elif pickup_completed is False:
             rescue_grip()
-            align(target_coords)
+            if not target_coords:
+                print('No target found during search phase. Try again?')
+                robot.exit()
+                break
+            align(target_coords) # align robot to the coordinates it saved when it detected the correct doll
+            result = detect_object(tmp_frame) # RAPHAEL'S FUNCTION
             pickup_completed = rescue_loop(result)            
         else:
             robot.exit()

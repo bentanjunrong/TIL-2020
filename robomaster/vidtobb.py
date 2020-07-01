@@ -28,7 +28,7 @@ classesFile = "/home/rohit/Documents/Computer Science/Hackathons/DSTA TIL/modane
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
-def predict_frame(frame):
+def detect_object(frame):
     res = { "detect": 0, "dist": None, "class": None }
     mapping = { 8:1, 7:2, 4:3, 5:4, 10:5 }
     

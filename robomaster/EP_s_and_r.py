@@ -6,10 +6,10 @@ from vidtobb import detect_object
 
 
 robot = Robot(findrobotIP)
-target_cat = 0
+target_cats = 0
 target_coords = []
 center_coords = []
-
+partials_coords = []
 
 
 def waitToStill():
@@ -116,7 +116,20 @@ def lock_on_loop(result):
     else: 
         robot.rotate('5') # assuming left-to-right sweep
         waitToStill()
+def is_full_match(cat):
+    matches = []
+    for target_cat in target_cats:
+        if target_cat in cat:
+            matches.append(target_cat)
+    if len(matches) == len(target_cats):
+        return True
     
+    elif len(matches): 
+        partials_coords.append(robot._sendcommand('chassis position ?').split(' ')[:3])
+    return False
+
+        
+
 
 
 tag_count = 0
@@ -129,7 +142,7 @@ def search_loop(result):
     global no_detect_counter, object_lock
     detected = result['detect']
     dist = result['dist']
-    cat = result['class']
+    cat = result['class'] # if cat is not 0, this is a list
     if detected is False: 
         if object_lock is False or no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
             moveforward(0.1)
@@ -146,23 +159,23 @@ def search_loop(result):
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
-    if cat == 0:
+    if cat == 0: # cat is int
         moveforward(0.1)
         return False
     else:
-        if cat == target_cat:
+        if is_full_match(cat): 
             save_target_coords()
             flash_green()
         else:
             flash_red()
-        # tagged[tag_count]  = True
+        
         tag_count += 1
         object_lock = False
         binary_lock = False
         if tag_count == 3:
             return True
         else: 
-            # go_center()
+            
             align(center_coords)
             if tag_count == 1: robot.rotate('-45')
             else : robot.rotate('45')
@@ -171,8 +184,18 @@ def search_loop(result):
 
 
 def rescue_loop(result):
-    # put if statement if detected is false for some reason
+    global no_detect_counter, object_lock
+    detected = result['detect']
     dist = result['dist']
+    if detected is False: 
+        if no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
+            moveforward(0.05)
+        else: # keep still
+            no_detect_counter +=1
+        waitToStill()
+        return False
+    no_detect_counter=0
+
     if dist > dist_thresh or dist < -dist_thresh:
         turn_angle = dist*turn_const # if dist is negative, will turn right
         robot.rotate(str(turn_angle))
@@ -187,8 +210,8 @@ def rescue_loop(result):
         robot.move('x 0.1 vxy 0.15') # inch forward. Check for a better way.
         return False
 
-def s_and_r(target):
-    target_cat = target
+def s_and_r(targets): # target is a list
+    target_cats = targets
     moveforward(0.4)
     save_center_coords()
     robot.rotate('-135')
@@ -215,14 +238,14 @@ def s_and_r(target):
                 result = detect_binary(cropped_frame) # BINARY CLASSIFIER
                 lock_on_loop(result)
             else:
-                result = detect_object(tmp_frame) # OBJECT DETECTOR
+                result = detect_object(tmp_frame) # OBJECT DETECTOR.. 
                 search_completed = search_loop(result)
         elif pickup_completed is False:
             if pickup_setup is False:
                 rescue_grip()
                 if not target_coords:
                     print('No target found during search phase. Picking up closest doll.')
-                    
+                    align(partials_coords[0])
                     # robot.exit()
                     # break
                 else: align(target_coords) # align robot to the coordinates it saved when it detected the correct doll

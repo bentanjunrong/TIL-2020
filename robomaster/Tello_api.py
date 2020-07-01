@@ -7,7 +7,7 @@ tello_ip = '192.168.10.1'
 my_ip = '192.168.1.167'
 
 class Tello():
-	def __init__(self, minheight=20, maxheight=200):
+	def __init__(self, minheight=150, maxheight=300):
 		self.commandsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.commandsocket.bind(('', 8889))
 		self.commandsocket.settimeout(8) # wait for reply in recvfrom
@@ -25,7 +25,7 @@ class Tello():
 	def _sendcommand(self, cmdstring, tries=3):
 		assert isinstance(cmdstring, str)
 		for i in range(tries):
-			self.commandsocket.sendto(cmdstring.encode(), (my_ip, 8889))
+			self.commandsocket.sendto(cmdstring.encode(), (tello_ip, 8889))
 			try:
 				commandreply, addr = self.commandsocket.recvfrom(1024)
 				reply = commandreply.decode("utf-8")

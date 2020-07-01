@@ -103,7 +103,7 @@ def search_loop(result):
         waitToStill()
         return False
     elif dist > dist_thresh or dist < -dist_thresh:
-        turn_angle = -1*dist*turn_const # if dist is negative, will turn left
+        turn_angle = dist*turn_const # if dist is negative, will turn left
         robot.rotate(str(turn_angle))
         waitToStill()
         return False

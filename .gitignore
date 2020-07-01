@@ -7,3 +7,4 @@ robomaster/__pycache__/*
 robomaster/utils/__pycache__/*
 .vscode/*
 robomaster/test_EP.ipynb
+CV/images/*

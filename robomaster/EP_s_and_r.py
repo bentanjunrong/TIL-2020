@@ -74,6 +74,12 @@ def align(coords): #Tested (notes above)
         y = y_robot - y_dest
     robot.move('x {} y {} vxy 0.1'.format(str(x), str(y)))
     waitToStill()
+def crop_frame_by(frame,crop_by_factor):
+    crop_by = crop_by_factor #lol pls forgive me for this
+    width = (1280/crop_by)/2
+    x_left = int((640) - width) # from center
+    x_right = int((640) + width) #from center
+    return frame[0:720,x_left:x_right]
 
 def go_center():
     align([0,0,0])

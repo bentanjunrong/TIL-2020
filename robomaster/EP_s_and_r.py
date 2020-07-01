@@ -101,11 +101,11 @@ def flash_red():
     robot._sendcommand('led control comp bottom_all r 255 g 0 b 0 effect blink')
     time.sleep(5)
 # tagged = [False*3]
-locked_target = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
+binary_lock = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
 
 def lock_on_loop(result):
     if result: # doll detected
-        locked_target = True
+        binary_lock = True
     else: 
         robot.rotate('5') # assuming left-to-right sweep
         waitToStill()
@@ -115,17 +115,24 @@ def lock_on_loop(result):
 tag_count = 0
 turn_const = 0.1 # UNTESTED
 dist_thresh = 110 # UNTESTED
-
+object_lock = False
+no_detect_counter = 0
 
 def search_loop(result):
     detected = result['detect']
     dist = result['dist']
     cat = result['class']
-    if detected is False:
-        moveforward(0.3)
+    if detected is False: # Needs to be tweaked now that binary_lock is used elsewhere
+        if object_lock is False or no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
+            moveforward(0.1)
+        else: # keep still
+            no_detect_counter +=1
         waitToStill()
         return False
+    if object_lock is False:
+        object_lock = True # Sets this to true the first time the prediction detects an object. Is released once tagging is complete before proceeding to the next doll
     if dist > dist_thresh or dist < -dist_thresh:
+
         turn_angle = dist*turn_const # if dist is negative, will turn left
         robot.rotate(str(turn_angle))
         waitToStill()
@@ -141,7 +148,8 @@ def search_loop(result):
             flash_red()
         # tagged[tag_count]  = True
         tag_count += 1
-        locked_target = False
+        object_lock = False
+        binary_lock = False
         if tag_count == 3:
             return True
         else: 
@@ -188,12 +196,12 @@ def s_and_r(target):
         
         
         if search_completed is False:
-            if locked_target is False:
-                frame = crop_frame_by(frame,7)
-                result = detect_binary(frame)
+            if binary_lock is False:
+                cropped_frame = crop_frame_by(tmp_frame,7)
+                result = detect_binary(cropped_frame) # BINARY CLASSIFIER
                 lock_on_loop(result)
             else:
-                result = detect_object(tmp_frame) # RAPHAEL'S FUNCTION
+                result = detect_object(tmp_frame) # OBJECT DETECTOR
                 search_completed = search_loop(result)
         elif pickup_completed is False:
             rescue_grip()
@@ -202,7 +210,7 @@ def s_and_r(target):
                 robot.exit()
                 break
             align(target_coords) # align robot to the coordinates it saved when it detected the correct doll
-            result = detect_object(tmp_frame) # RAPHAEL'S FUNCTION
+            result = detect_object(tmp_frame) # OBJECT DETECTOR
             pickup_completed = rescue_loop(result)            
         else:
             robot.exit()

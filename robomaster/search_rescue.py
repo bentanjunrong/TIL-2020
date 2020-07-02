@@ -2,8 +2,8 @@ from EP_api import Robot, findrobotIP
 import time
 import cv2
 import numpy
-from vidtobb import detect_object
-from predict_binary import detect_binary
+from utils.object_detector import detect_object
+from utils.predict_binary import detect_binary
 
 
 robot = Robot(findrobotIP)

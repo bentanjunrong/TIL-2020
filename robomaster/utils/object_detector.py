@@ -9,9 +9,9 @@ DETECT_THRES = 0.2
 
 # load yolo model
 yolo = YOLOv4()
-yolo.classes = "../../s3_model/custom_data/custom.names"
+yolo.classes = "../models/custom_data/custom.names"
 yolo.make_model()
-yolo.load_weights("../../s3_model/yolov4-custom_best.weights", weights_type="yolo")
+yolo.load_weights("../models/yolov4-custom_best.weights", weights_type="yolo")
 
 def detect_object(frame):
     res = { "detect": 0, "dist": None, "class": 0 }
@@ -135,30 +135,31 @@ while not cap.isOpened():
     if cv2.waitKey(16) == 27:
         break
 
-cnt = 0
-while cap.isOpened():
+#### Commented all these out cos they will get triggered during import in EP_s_and_r.py
+# cnt = 0
+# while cap.isOpened():
 
-    # get frame from the video
-    hasFrame, frame = cap.read()
+#     # get frame from the video
+#     hasFrame, frame = cap.read()
 
-    # q to quit
-    if cv2.waitKey(16) == ord("q"):
-        break
+#     # q to quit
+#     if cv2.waitKey(16) == ord("q"):
+#         break
 
-    print(cnt)
-    cnt += 1
-    if (cnt - 1) < 400 or (cnt - 1) % 30: continue
+#     print(cnt)
+#     cnt += 1
+#     if (cnt - 1) < 400 or (cnt - 1) % 30: continue
 
-    # stop the program if reached end of video
-    if not hasFrame: break
+#     # stop the program if reached end of video
+#     if not hasFrame: break
 
-    # analyse and return res
-    res = detect_object(frame)
-    print(res)
+#     # analyse and return res
+#     res = detect_object(frame)
+#     print(res)
 
-    # analyse and draw - comment out to improve performance
-    bboxes = yolo.predict(frame)
-    frame = draw_bbox(frame, bboxes, yolo.classes)
+#     # analyse and draw - comment out to improve performance
+#     bboxes = yolo.predict(frame)
+#     frame = draw_bbox(frame, bboxes, yolo.classes)
 
-    # Write the frame with the detection boxes
-    cv2.imshow('fk this shit', frame)
+#     # Write the frame with the detection boxes
+#     cv2.imshow('fk this shit', frame)

@@ -10,3 +10,4 @@ robomaster/test_EP.ipynb
 CV/images/*
 models/*
 !models/PUT MODELS HERE
+Pipfile.lock

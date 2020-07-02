@@ -12,6 +12,7 @@ target_coords = []
 center_coords = []
 partials_coords = []
 grip_thresh = 0
+boundaries = [0,0.98,-0.80,0.70] # xmin, xmax, ymin, ymax in meters
 
 
 def waitToStill():
@@ -26,9 +27,27 @@ def waitToStill():
             still = True
     # return #TEST
 
-def moveforward(dist): # tested
+def outOfBounds(dist): #Untested
+    x_cur, y_cur = robot._sendcommand('chassis position ?').split(' ')[:2]
+    angle = nearest_90_angle()
+    x_new, y_new = x_cur,y_cur
+    if angle == 0: x_new += dist
+    elif angle == 180: x_new -= dist
+    elif angle == -90: y_new -= dist
+    else: y_new += dist
+    if x_new < boundaries[0] or x_new > boundaries[1] or y_new < boundaries[2] or y_new > boundaries[3]:
+        return True
+    else: return False
+
+
+    return
+
+def moveforward(dist): # UNtested
+    if(outOfBounds(dist)): # function to check if moving this far will cause the robot to go out of bounds
+        return False
     robot.move('x {} vxy 0.1'.format(str(dist)))
     waitToStill()
+    return True
 
 def get_current_angle():
     current_angle = float(robot._sendcommand('chassis position ?').split(' ')[2]) # Relative to power-up/starting position, which should be facing north
@@ -100,7 +119,6 @@ def calc_image(): # Tested
 def set_grip_threshold(): # Tested
     global grip_thresh
     rescue_grip()
-    time.sleep(2)
     robot.closearm()
     time.sleep(3)
     grip_thresh = calc_image()

@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy
 from vidtobb import detect_object
+from predict_binary import detect_binary
 
 
 robot = Robot(findrobotIP)
@@ -53,7 +54,7 @@ def nearest_90_angle(): # tested
 # Aligns robot so that it is in the center of the current_loc
 
 # coords is an float list sized 3 containing x,y,z coords of the destination
-def align(coords): #Tested (notes above)
+def align(coords):  # UNtested
     x_dest, y_dest, z_dest = coords
     turn_to_angle(z_dest)
     snap_angle = nearest_90_angle() # finds nearest 90 degree angle. I call it snapping lmao
@@ -120,30 +121,30 @@ def is_gripped(): # Tested
     if val > (grip_thresh + 3) or val < (grip_thresh - 3): return True
     else: return False
 
-def save_target_coords():
+def save_target_coords(): # Untested
     target_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
 
-def save_center_coords():
+def save_center_coords():# Untested
     center_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
 
-def flash_green():
+def flash_green():# Untested
     robot._sendcommand('led control comp bottom_all r 0 g 255 b 0 effect blink')
     time.sleep(5)
 
-def flash_red():
+def flash_red():# Untested
     robot._sendcommand('led control comp bottom_all r 255 g 0 b 0 effect blink')
     time.sleep(5)
 
 
 binary_lock = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
 
-def lock_on_loop(result):
+def lock_on_loop(result): # Untested
     if result: # doll detected
         binary_lock = True
     else: 
         robot.rotate('5') # assuming left-to-right sweep
         waitToStill()
-def is_full_match(cat):
+def is_full_match(cat): # Untested
     matches = []
     for target_cat in target_cats:
         if target_cat in cat:
@@ -165,7 +166,7 @@ dist_thresh = 100 # UNTESTED
 object_lock = False
 no_detect_counter = 0
 
-def search_loop(result):
+def search_loop(result): # Untested
     global no_detect_counter, object_lock
     detected = result['detect']
     dist = result['dist']
@@ -210,7 +211,7 @@ def search_loop(result):
             return False
 
 
-def rescue_loop(result):
+def rescue_loop(result): # Untested
     global no_detect_counter, object_lock
     detected = result['detect']
     dist = result['dist']

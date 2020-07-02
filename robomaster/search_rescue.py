@@ -179,8 +179,8 @@ def is_full_match(cat): # Untested
 
 
 tag_count = 0
-turn_const = 0.01 # UNTESTED
-dist_thresh = 100 # UNTESTED
+turn_const = 0.02 # UNTESTED
+dist_thresh = 45 # UNTESTED
 object_lock = False
 no_detect_counter = 0
 
@@ -201,7 +201,7 @@ def search_loop(result): # Untested
     no_detect_counter = 0
     if dist > dist_thresh or dist < -dist_thresh:
 
-        turn_angle = dist*turn_const # if dist is negative, will turn right
+        turn_angle = int(dist*turn_const) # if dist is negative, will turn right
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
@@ -248,11 +248,14 @@ def rescue_loop(result): # Untested
         waitToStill()
         return False
     robot.closearm()
+    time.sleep(3)
     if is_gripped(): # need to test
         robot.movearm('x 0 y 50')
+        flash_green()
         return True
     else:
         robot.openarm()
+        time.sleep(3)
         robot.move('x 0.1 vxy 0.15') # inch forward. Check for a better way.
         return False
 

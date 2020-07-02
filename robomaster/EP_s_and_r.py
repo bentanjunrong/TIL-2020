@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy
 from vidtobb import detect_object
+from predict_binary import detect_binary
 
 
 robot = Robot(findrobotIP)
@@ -10,6 +11,7 @@ target_cats = 0
 target_coords = []
 center_coords = []
 partials_coords = []
+grip_thresh = 0
 
 
 def waitToStill():
@@ -52,7 +54,7 @@ def nearest_90_angle(): # tested
 # Aligns robot so that it is in the center of the current_loc
 
 # coords is an float list sized 3 containing x,y,z coords of the destination
-def align(coords): #Tested (notes above)
+def align(coords):  # UNtested
     x_dest, y_dest, z_dest = coords
     turn_to_angle(z_dest)
     snap_angle = nearest_90_angle() # finds nearest 90 degree angle. I call it snapping lmao
@@ -85,38 +87,64 @@ def crop_frame_by(frame,crop_by_factor):
 
 
 
-def rescue_grip():
+def rescue_grip(): # Tested
     robot._sendcommand('robotic_arm moveto x 182 y 0')
 
-def is_gripped():
-    val = int(robot._sendcommand('robotic_gripper status ?'))
-    if val == 1: return True
+def calc_image(): # Tested
+    img = cv2.cvtColor(robot.frame,cv2.COLOR_BGR2GRAY)[549:625, 603:683]
+    res = 0
+    for row in img:
+        res += sum(row)
+    return res / sum([len(row) for row in img])
+
+def set_grip_threshold(): # Tested
+    global grip_thresh
+    rescue_grip()
+    time.sleep(2)
+    robot.closearm()
+    time.sleep(3)
+    grip_thresh = calc_image()
+    time.sleep(3)
+    robot.openarm()
+    robot.center() 
+    time.sleep(1)
+    print("GRIP THRESHOLD: ",grip_thresh)
+    return True
+
+
+def is_gripped(): # Tested
+    # val = int(robot._sendcommand('robotic_gripper status ?'))
+    # if val == 1: return True
+    # else: return False
+    val = calc_image()
+    print('CURRENT THRESHOLD: ',val)
+    if val > (grip_thresh + 3) or val < (grip_thresh - 3): return True
     else: return False
 
-def save_target_coords():
+def save_target_coords(): # Untested
     target_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
 
-def save_center_coords():
+def save_center_coords():# Untested
     center_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
 
-def flash_green():
+def flash_green():# Untested
     robot._sendcommand('led control comp bottom_all r 0 g 255 b 0 effect blink')
     time.sleep(5)
 
-def flash_red():
+def flash_red():# Untested
     robot._sendcommand('led control comp bottom_all r 255 g 0 b 0 effect blink')
     time.sleep(5)
 
 
 binary_lock = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
 
-def lock_on_loop(result):
+def lock_on_loop(result): # Untested
     if result: # doll detected
         binary_lock = True
     else: 
         robot.rotate('5') # assuming left-to-right sweep
         waitToStill()
-def is_full_match(cat):
+def is_full_match(cat): # Untested
     matches = []
     for target_cat in target_cats:
         if target_cat in cat:
@@ -138,7 +166,7 @@ dist_thresh = 100 # UNTESTED
 object_lock = False
 no_detect_counter = 0
 
-def search_loop(result):
+def search_loop(result): # Untested
     global no_detect_counter, object_lock
     detected = result['detect']
     dist = result['dist']
@@ -183,7 +211,7 @@ def search_loop(result):
             return False
 
 
-def rescue_loop(result):
+def rescue_loop(result): # Untested
     global no_detect_counter, object_lock
     detected = result['detect']
     dist = result['dist']
@@ -210,7 +238,10 @@ def rescue_loop(result):
         robot.move('x 0.1 vxy 0.15') # inch forward. Check for a better way.
         return False
 
+tmp_frame = None # Currently not used anywhere. Can delete later.
+
 def s_and_r(targets): # target is a list
+    global tmp_frame
     target_cats = targets
     moveforward(0.4)
     save_center_coords()
@@ -220,7 +251,7 @@ def s_and_r(targets): # target is a list
     while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
         pass
 
-    
+    initial_setup = False
     search_completed = False
     pickup_completed = False
     pickup_setup = False
@@ -230,9 +261,10 @@ def s_and_r(targets): # target is a list
         cv2.imshow('Live video', tmp_frame) # access the video feed by robot.frame
     
         
+        if initial_setup is False:
+            initial_setup = set_grip_threshold()
         
-        
-        if search_completed is False:
+        elif search_completed is False:
             if binary_lock is False:
                 cropped_frame = crop_frame_by(tmp_frame,7)
                 result = detect_binary(cropped_frame) # BINARY CLASSIFIER

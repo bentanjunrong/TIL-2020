@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from yolo.YOLOv3 import YOLOv3Predictor
 
+DETECT_THRES = 0.4
+
 # use gpu if can
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.empty_cache()
@@ -29,14 +31,23 @@ with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
 def detect_object(frame):
-    res = { "detect": 0, "dist": None, "class": None }
+    res = { "detect": 0, "dist": None, "class": 0 }
     mapping = { 8:1, 7:2, 4:3, 5:4, 10:5 }
     
-    detections = YOLOv3Predictor(params=yolo_modanet_params).get_detections(frame)
-    for x1, y1, x2, y2, cls_conf, cls_pred in detections:
-        if int(cls_pred) not in [4,5,7,8,10]: continue
+    detections = YOLOv3Predictor(params=yolo_modanet_params).get_detections(frame) # change model to darknet one, use tut online
 
-        res["detect"] = 1
+    detections.sort(key=lambda x:x[4], reverse=True) # if empty list returned, can sort, else need check for none before this
+    if not detections or detections[0][4] < DETECT_THRES: return res
+
+    res["detect"] = 1
+    res["dist"] = []
+    res["class"] = []
+
+    seen = []
+    for x1, y1, x2, y2, cls_conf, cls_pred in detections:
+        if int(cls_pred) not in [4,5,7,8,10]: continue # can remove later
+        if cls_pred < DETECT_THRES or int(cls_pred) in seen: continue
+        seen.append(int(cls_pred))
 
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
         height, width, channels = frame.shape
@@ -44,10 +55,12 @@ def detect_object(frame):
         centre = (width // 2, height // 2)
         centre_bb = ((x1 + x2) // 2, (y1 + y2) // 2)
 
-        res["dist"] = centre_bb[0] - centre[0]
-        res["class"] = mapping[int(cls_pred)]
+        res["dist"].append(centre_bb[0] - centre[0])
+        res["class"].append(mapping[int(cls_pred)])
 
-        print('Dist from centre:', res["dist"], ", Class:", res["class"], "Confidence:", cls_conf)
+        print('Dist from centre:', centre_bb[0] - centre[0], ", Class:", mapping[int(cls_pred)], "Confidence:", cls_conf)
+
+    res["dist"] = sum(res["dist"]) / len(res["dist"])
 
     return res
 

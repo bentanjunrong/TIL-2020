@@ -36,8 +36,9 @@ def detect_object(frame):
     
     detections = YOLOv3Predictor(params=yolo_modanet_params).get_detections(frame) # change model to darknet one, use tut online
 
-    detections.sort(key=lambda x:x[4], reverse=True) # if empty list returned, can sort, else need check for none before this
-    if not detections or detections[0][4] < DETECT_THRES: return res
+    if not detections: return res
+    detections.sort(key=lambda x:x[4], reverse=True)
+    if detections[0][4] < DETECT_THRES: return res
 
     res["detect"] = 1
     res["dist"] = []

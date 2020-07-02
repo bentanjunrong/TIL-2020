@@ -8,3 +8,5 @@ robomaster/utils/__pycache__/*
 .vscode/*
 robomaster/test_EP.ipynb
 CV/images/*
+models/*
+!models/PUT MODELS HERE

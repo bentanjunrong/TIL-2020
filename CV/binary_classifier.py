@@ -11,7 +11,7 @@ import numpy as np
 
 
 # %%
-from tensorflow.keras.applications.xception import preprocess_input
+from tensorflow.keras.applications.resnet import preprocess_input
 train_path = '../../data/binary_classifier_train' # 2 levels up cos this notebook is in a subfolder
 
 train_image_generator = ImageDataGenerator(validation_split = 0.1, preprocessing_function=preprocess_input) 
@@ -24,11 +24,11 @@ val_data_gen = train_image_generator.flow_from_directory(train_path, subset='val
 
 
 # %%
-from tensorflow.keras.applications import Xception
+from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.metrics import TopKCategoricalAccuracy
 # Create Model here
 model = Sequential()
-model.add(Xception(include_top=False, weights='imagenet', pooling='avg'))
+model.add(ResNet50(include_top=False, weights='imagenet', pooling='avg'))
 model.add(Dense(1,activation='sigmoid'))
 model.layers[0].trainable = False
 
@@ -43,7 +43,7 @@ model.summary()
 
 # %%
 from tensorflow.keras.callbacks import ModelCheckpoint
-checkpoint = ModelCheckpoint(os.path.join('saved_models','Xception_binary_snapshot_{epoch:02d}.h5'))
+checkpoint = ModelCheckpoint(os.path.join('saved_models','RESNET50_binary_snapshot_{epoch:02d}.h5'))
 
 
 # %%
@@ -54,5 +54,5 @@ history = model.fit(
             callbacks=checkpoint,
             validation_data=val_data_gen,
             validation_steps=14) # steps tbc
-model.save('saved_models/Xception_binary_try2.h5',save_format='h5')
+model.save('saved_models/RESNET50_binary_try2.h5',save_format='h5')
 

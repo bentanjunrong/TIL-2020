@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-model = tf.keras.models.load_model("C:\\Users\\Raphael\\Documents\\TIL_yolo_model\\RESNET50_binary_snapshot_01.h5")
+model = tf.keras.models.load_model("../models/RESNET50_binary_snapshot_01.h5")
 
 def predict_binary(image):
     image = cv2.resize(image, (224, 224))

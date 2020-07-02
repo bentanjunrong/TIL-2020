@@ -10,6 +10,7 @@ target_cats = 0
 target_coords = []
 center_coords = []
 partials_coords = []
+grip_thresh = 0
 
 
 def waitToStill():
@@ -85,12 +86,38 @@ def crop_frame_by(frame,crop_by_factor):
 
 
 
-def rescue_grip():
+def rescue_grip(): # Tested
     robot._sendcommand('robotic_arm moveto x 182 y 0')
 
-def is_gripped():
-    val = int(robot._sendcommand('robotic_gripper status ?'))
-    if val == 1: return True
+def calc_image(): # Tested
+    img = cv2.cvtColor(robot.frame,cv2.COLOR_BGR2GRAY)[549:625, 603:683]
+    res = 0
+    for row in img:
+        res += sum(row)
+    return res / sum([len(row) for row in img])
+
+def set_grip_threshold(): # Tested
+    global grip_thresh
+    rescue_grip()
+    time.sleep(2)
+    robot.closearm()
+    time.sleep(3)
+    grip_thresh = calc_image()
+    time.sleep(3)
+    robot.openarm()
+    robot.center() 
+    time.sleep(1)
+    print("GRIP THRESHOLD: ",grip_thresh)
+    return True
+
+
+def is_gripped(): # Tested
+    # val = int(robot._sendcommand('robotic_gripper status ?'))
+    # if val == 1: return True
+    # else: return False
+    val = calc_image()
+    print('CURRENT THRESHOLD: ',val)
+    if val > (grip_thresh + 3) or val < (grip_thresh - 3): return True
     else: return False
 
 def save_target_coords():
@@ -210,7 +237,10 @@ def rescue_loop(result):
         robot.move('x 0.1 vxy 0.15') # inch forward. Check for a better way.
         return False
 
+tmp_frame = None # Currently not used anywhere. Can delete later.
+
 def s_and_r(targets): # target is a list
+    global tmp_frame
     target_cats = targets
     moveforward(0.4)
     save_center_coords()
@@ -220,7 +250,7 @@ def s_and_r(targets): # target is a list
     while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
         pass
 
-    
+    initial_setup = False
     search_completed = False
     pickup_completed = False
     pickup_setup = False
@@ -230,9 +260,10 @@ def s_and_r(targets): # target is a list
         cv2.imshow('Live video', tmp_frame) # access the video feed by robot.frame
     
         
+        if initial_setup is False:
+            initial_setup = set_grip_threshold()
         
-        
-        if search_completed is False:
+        elif search_completed is False:
             if binary_lock is False:
                 cropped_frame = crop_frame_by(tmp_frame,7)
                 result = detect_binary(cropped_frame) # BINARY CLASSIFIER

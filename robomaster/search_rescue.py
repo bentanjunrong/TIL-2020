@@ -4,6 +4,7 @@ import cv2
 import numpy
 from utils.object_detector import detect_object
 from utils.predict_binary import detect_binary
+from utils.nlp_robo.py import process_text
 
 
 robot = Robot(findrobotIP)
@@ -97,12 +98,13 @@ def align(coords):  # UNtested
         y = y_robot - y_dest
     robot.move('x {} y {} z {} vxy 0.1'.format(str(x), str(y),str(z_dest)))
     waitToStill()
-def crop_frame_by(frame,crop_by_factor):
+def crop_frame_by(frame,crop_by_factor,crop_bot=False):
     crop_by = crop_by_factor #lol pls forgive me for this
     width = (1280/crop_by)/2
     x_left = int((640) - width) # from center
     x_right = int((640) + width) #from center
-    return frame[0:720,x_left:x_right]
+    if crop_bot: return frame[0:625,x_left:x_right]
+    else: return frame[0:720,x_left:x_right]
 
 
 
@@ -291,6 +293,7 @@ def s_and_r(targets): # target is a list
                 result = detect_binary(cropped_frame) # BINARY CLASSIFIER
                 lock_on_loop(result)
             else:
+                cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
                 result = detect_object(tmp_frame) # OBJECT DETECTOR.. 
                 search_completed = search_loop(result)
         elif pickup_completed is False:
@@ -303,7 +306,7 @@ def s_and_r(targets): # target is a list
                     # break
                 else: align(target_coords) # align robot to the coordinates it saved when it detected the correct doll
                 pickup_setup = True
-            result = detect_object(tmp_frame) # OBJECT DETECTOR
+            result = detect_object(tmp_frame,3,crop_bot=True) # OBJECT DETECTOR
             pickup_completed = rescue_loop(result)            
         else:
             robot.exit()
@@ -315,3 +318,5 @@ def s_and_r(targets): # target is a list
             print("Quitting")
             robot.exit()
             break
+text = ""
+s_and_r(process_text(text))

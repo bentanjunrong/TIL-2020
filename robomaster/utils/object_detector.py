@@ -1,10 +1,10 @@
 import cv2
 import colorsys
 import numpy as np
-from yolov4.tf import YOLOv4
+from yolov4.tf import YOLOv4 # Need to change detection threshold in utilities/predict
 from EP_api import Robot, findrobotIP
-DETECT_THRES = 0.2
-
+DETECT_THRES = 0.1
+HEIGHT_THRES = 0.3 # BBox must fill up at least 40% of the screen
 # load yolo model
 yolo = YOLOv4()
 yolo.classes = "../../models/custom_data/custom.names"
@@ -36,28 +36,38 @@ def detect_object(frame):
     res["detect"] = 1
     res["dist"] = []
     res["class"] = []
-
+    # initialize frame values
+    height, width, channels = frame.shape
+    centre = (width // 2, height // 2)
+    
     # process bbs
     seen = []
+    y_range = [0,0] # y_min of the highest bbox and y_max of the lowest bbox
+
     for bbox in bboxes:
         c_x = int(bbox[0])
         c_y = int(bbox[1])
-        class_id = int(bbox[4])
+        bbox_height = int(bbox[3])
+    
+        y_min = c_y - bbox_height
+        y_max = c_y + bbox_height
+        if y_min < y_range[0]: y_range[0] = y_min
+        if y_max < y_range[1] : y_range[0] = y_max
+
+        class_id = int(bbox[4]) + 1 # + 1 because original range is 0 to 4
         cls_pred = bbox[5]
         if cls_pred < DETECT_THRES or int(class_id) in seen: continue
         seen.append(int(class_id))
-
-        height, width, channels = frame.shape
-        centre = (width // 2, height // 2)
         centre_bb = (c_x, c_y)
-
+        
         res["dist"].append(centre_bb[0] - centre[0])
         res["class"].append(class_id)
 
         print('Dist from centre:', centre_bb[0] - centre[0], ", Class:", class_id, "Confidence:", cls_pred)
 
     res["dist"] = sum(res["dist"]) / len(res["dist"])
-
+    if height*HEIGHT_THRES < (y_range[1] - y_range[0]): res["class"] = 0
+    
     return res
 
 def draw_bbox(image: np.ndarray, bboxes: np.ndarray, classes: dict):
@@ -122,20 +132,25 @@ def draw_bbox(image: np.ndarray, bboxes: np.ndarray, classes: dict):
         )
 
     return image
-
+def crop_frame_by(frame,crop_by_factor):
+    crop_by = crop_by_factor #lol pls forgive me for this
+    width = (1280/crop_by)/2
+    x_left = int((640) - width) # from center
+    x_right = int((640) + width) #from center
+    return frame[0:625,x_left:x_right]
 
 ### TEST
 robot = Robot(findrobotIP())
 robot.startvideo()
-
+robot._sendcommand('robotic_arm moveto x 182 y 0')
 while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
 	pass
 
 
 while True:
-    cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
+    # cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
     # cv2.imshow('Live video', robot.frame) # access the video feed by robot.frame
-    frame = robot.frame
+    frame = crop_frame_by(robot.frame,2)
     try:
         # analyse and return res
         res = detect_object(frame)

@@ -96,7 +96,7 @@ def align(coords):  # Tested
     else:
         x = x_robot - x_dest
         y = y_robot - y_dest
-    robot.move('x {} y {} vxy 0.1'.format(str(x), str(y)))
+    robot.move('x {} y {} z {} vxy 0.1'.format(str(x), str(y),str(z_dest)))
     
     waitToStill()
 def crop_frame_by(frame,crop_by_factor,crop_bot=False): #tested

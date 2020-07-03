@@ -60,6 +60,7 @@ while True:
     elif k == 27: # press esc to stop
         tello.exit()
         print('Your turn bij.')
+        # flip odd rows
         navigate_start_to_end(GRID)
         break
 

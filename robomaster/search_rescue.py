@@ -1,4 +1,4 @@
-from EP_api import Robot, findrobotIP
+from utils.EP_api import Robot, findrobotIP
 import time
 import cv2
 import numpy

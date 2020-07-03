@@ -1,5 +1,5 @@
 # from utils.fake_EP_api import Robot
-from EP_api import Robot, findrobotIP
+from utils.EP_api import Robot, findrobotIP
 from utils.shortest_path import find_shortest_path
 import time
 import cv2

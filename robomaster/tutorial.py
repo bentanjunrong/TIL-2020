@@ -4,7 +4,7 @@ This is a compilation of examples ran in the jupyter notebook during the tutoria
 
 # 1. Initializing
 
-from EP_api import Robot, findrobotIP
+from utils.EP_api import Robot, findrobotIP
 import time
 
 robot = Robot('192.168.2.1') # WIFI direct

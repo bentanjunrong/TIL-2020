@@ -2,7 +2,7 @@ import cv2
 import colorsys
 import numpy as np
 from yolov4.tf import YOLOv4
-
+from EP_api import Robot, findrobotIP
 DETECT_THRES = 0.2
 
 # load yolo model
@@ -122,6 +122,38 @@ def draw_bbox(image: np.ndarray, bboxes: np.ndarray, classes: dict):
         )
 
     return image
+
+
+### TEST
+robot = Robot(findrobotIP())
+robot.startvideo()
+
+while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
+	pass
+
+
+while True:
+    cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
+    # cv2.imshow('Live video', robot.frame) # access the video feed by robot.frame
+    frame = robot.frame
+    try:
+        # analyse and return res
+        res = detect_object(frame)
+        print(res)
+
+        # analyse and draw - comment out to improve performance
+        bboxes = yolo.predict(frame)
+        frame = draw_bbox(frame, bboxes, yolo.classes)
+    except:
+        pass
+
+    # Write the frame with the detection boxes
+    cv2.imshow('fk this shit', frame)
+    k = cv2.waitKey(16) & 0xFF
+    if k == 27: # press esc to stop
+        print("Quitting")
+        robot.exit()
+        break
 
 #### Commented all these out cos they will get triggered during import in EP_s_and_r.py
 # cv2.namedWindow('fk this shit', cv2.WINDOW_NORMAL)

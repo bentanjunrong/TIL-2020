@@ -2,16 +2,16 @@ import cv2
 import colorsys
 import numpy as np
 from yolov4.tf import YOLOv4 # Need to change detection threshold in utilities/predict
-from EP_api import Robot, findrobotIP
+# from EP_api import Robot, findrobotIP
 DETECT_THRES = 0.1
 HEIGHT_THRES = 0.3 # BBox must fill up at least 40% of the screen
 # load yolo model
 yolo = YOLOv4()
-yolo.classes = "../../models/custom_data/custom.names"
+yolo.classes = "../models/custom_data/custom.names"
 yolo.make_model()
-yolo.load_weights("../../models/yolov4-custom_best.weights", weights_type="yolo")
+yolo.load_weights("../models/yolov4-custom_best.weights", weights_type="yolo")
 
-def detect_object(frame):
+def object_detect(frame):
     res = { "detect": 0, "dist": None, "class": 0 }
 
     # analyse frame
@@ -140,35 +140,35 @@ def crop_frame_by(frame,crop_by_factor):
     return frame[0:625,x_left:x_right]
 
 ### TEST
-robot = Robot(findrobotIP())
-robot.startvideo()
-robot._sendcommand('robotic_arm moveto x 182 y 0')
-while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
-	pass
+# robot = Robot(findrobotIP())
+# robot.startvideo()
+# robot._sendcommand('robotic_arm moveto x 182 y 0')
+# while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
+# 	pass
 
 
-while True:
-    # cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
-    # cv2.imshow('Live video', robot.frame) # access the video feed by robot.frame
-    frame = crop_frame_by(robot.frame,2)
-    try:
-        # analyse and return res
-        res = detect_object(frame)
-        print(res)
+# while True:
+#     # cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
+#     # cv2.imshow('Live video', robot.frame) # access the video feed by robot.frame
+#     frame = crop_frame_by(robot.frame,2)
+#     try:
+#         # analyse and return res
+#         res = detect_object(frame)
+#         print(res)
 
-        # analyse and draw - comment out to improve performance
-        bboxes = yolo.predict(frame)
-        frame = draw_bbox(frame, bboxes, yolo.classes)
-    except:
-        pass
+#         # analyse and draw - comment out to improve performance
+#         bboxes = yolo.predict(frame)
+#         frame = draw_bbox(frame, bboxes, yolo.classes)
+#     except:
+#         pass
 
-    # Write the frame with the detection boxes
-    cv2.imshow('fk this shit', frame)
-    k = cv2.waitKey(16) & 0xFF
-    if k == 27: # press esc to stop
-        print("Quitting")
-        robot.exit()
-        break
+#     # Write the frame with the detection boxes
+#     cv2.imshow('fk this shit', frame)
+#     k = cv2.waitKey(16) & 0xFF
+#     if k == 27: # press esc to stop
+#         print("Quitting")
+#         robot.exit()
+#         break
 
 #### Commented all these out cos they will get triggered during import in EP_s_and_r.py
 # cv2.namedWindow('fk this shit', cv2.WINDOW_NORMAL)

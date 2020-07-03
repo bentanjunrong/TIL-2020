@@ -150,12 +150,12 @@ def navigate_start_to_end(grid):
 # [1,0,0,0,0,0,1,0,0],
 # [0,1,1,1,1,1,1,1,1]
 # ] 
-occupancy_grid_test = [
-    [1,0,0,0,0,0,0,0,0],
-    [0,1,1,1,1,1,1,1,0],
-    [1,0,0,0,0,0,0,0,0]
-    ]
-navigate_start_to_end(occupancy_grid_test)
+# occupancy_grid_test = [
+#     [1,0,0,0,0,0,0,0,0],
+#     [0,1,1,1,1,1,1,1,0],
+#     [1,0,0,0,0,0,0,0,0]
+#     ]
+# navigate_start_to_end(occupancy_grid_test)
 # align((0,0))
 robot.exit()
 

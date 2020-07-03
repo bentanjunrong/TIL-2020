@@ -39,7 +39,7 @@ def process_text(input_string):
     sample output:[1]
     '''
     #take a look at the data
-    df = pd.read_csv('robomaster\\utils\\NLP_files\\TIL_NLP_train_dataset.csv')
+    df = pd.read_csv('utils/NLP_files/TIL_NLP_train_dataset.csv')
     X = list(df["word_representation"])
 
 
@@ -50,7 +50,7 @@ def process_text(input_string):
         mod_sen = (" ").join(ans)
         mod_X.append(mod_sen)
 
-    df_val = pd.read_csv('robomaster\\utils\\NLP_files\\TIL_NLP_test_dataset.csv')
+    df_val = pd.read_csv('utils/NLP_files/TIL_NLP_test_dataset.csv')
     df_val.head(10)
     X_val=df_val['word_representation'].values
 
@@ -71,7 +71,7 @@ def process_text(input_string):
     for i in range(len(pre_pad_X)):
         all_lens.append(len(pre_pad_X[i]))
 
-    encoded_words = pd.read_pickle("robomaster\\utils\\NLP_files\\encoded_words.pkl")
+    encoded_words = pd.read_pickle("utils/NLP_files/encoded_words.pkl")
 
     #encode words from the dictionary
     tmp = input_string.split(" ")
@@ -85,7 +85,7 @@ def process_text(input_string):
 
     #load trained model
     #assign predicted values, rounding up and down respectively
-    model = load_model('robomaster\\utils\\NLP_files\\my_model.h5')
+    model = load_model('utils/NLP_files/my_model.h5')
     preds_val = model.predict(padded_token_str)
     preds_val[preds_val>=0.5] = 1
     preds_val[preds_val<0.5] = 0

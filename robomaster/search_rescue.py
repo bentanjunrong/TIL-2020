@@ -2,21 +2,21 @@ from utils.EP_api import Robot, findrobotIP
 import time
 import cv2
 import numpy
-from utils.object_detector import detect_object
-from utils.predict_binary import detect_binary
-from utils.nlp_robo.py import process_text
+from utils.object_detector import object_detect
+from utils.predict_binary import binary_detect
+from utils.nlp_robo import process_text
 
 
-robot = Robot(findrobotIP)
+robot = Robot(findrobotIP())
 target_cats = 0
 target_coords = []
 center_coords = []
 partials_coords = []
 grip_thresh = 0
-boundaries = [0,0.98,-0.80,0.70] # xmin, xmax, ymin, ymax in meters
+boundaries = [0,0.93,-0.75,0.65] # xmin, xmax, ymin, ymax in meters
 
 
-def waitToStill():
+def waitToStill(): #tested
     time.sleep(0.5)
     still = False
     while (still is False):
@@ -28,10 +28,12 @@ def waitToStill():
             still = True
     # return #TEST
 
-def outOfBounds(dist): #Untested
+def outOfBounds(dist): #Tested
     x_cur, y_cur = robot._sendcommand('chassis position ?').split(' ')[:2]
     angle = nearest_90_angle()
     x_new, y_new = x_cur,y_cur
+    x_new = float(x_new)
+    y_new = float(y_new)
     if angle == 0: x_new += dist
     elif angle == 180: x_new -= dist
     elif angle == -90: y_new -= dist
@@ -41,8 +43,6 @@ def outOfBounds(dist): #Untested
     else: return False
 
 
-    return
-
 def moveforward(dist): # UNtested
     if(outOfBounds(dist)): # function to check if moving this far will cause the robot to go out of bounds
         return False
@@ -50,7 +50,7 @@ def moveforward(dist): # UNtested
     waitToStill()
     return True
 
-def get_current_angle():
+def get_current_angle(): #tested
     current_angle = float(robot._sendcommand('chassis position ?').split(' ')[2]) # Relative to power-up/starting position, which should be facing north
     if current_angle > 180: current_angle -= 360
     return current_angle
@@ -74,12 +74,12 @@ def nearest_90_angle(): # tested
 # Aligns robot so that it is in the center of the current_loc
 
 # coords is an float list sized 3 containing x,y,z coords of the destination
-def align(coords):  # UNtested
+def align(coords):  # Tested
     x_dest, y_dest, z_dest = coords
     turn_to_angle(z_dest)
     snap_angle = nearest_90_angle() # finds nearest 90 degree angle. I call it snapping lmao
     turn_to_angle(snap_angle)
-    x_cur, y_cur = robot._sendcommand('chassis position ?').split(' ')[:2]
+    x_robot, y_robot = robot._sendcommand('chassis position ?').split(' ')[:2]
     x_robot = float(x_robot)
     y_robot = float(y_robot)
     print(x_robot,y_robot)
@@ -96,9 +96,10 @@ def align(coords):  # UNtested
     else:
         x = x_robot - x_dest
         y = y_robot - y_dest
-    robot.move('x {} y {} z {} vxy 0.1'.format(str(x), str(y),str(z_dest)))
+    robot.move('x {} y {} vxy 0.1'.format(str(x), str(y)))
+    
     waitToStill()
-def crop_frame_by(frame,crop_by_factor,crop_bot=False):
+def crop_frame_by(frame,crop_by_factor,crop_bot=False): #tested
     crop_by = crop_by_factor #lol pls forgive me for this
     width = (1280/crop_by)/2
     x_left = int((640) - width) # from center
@@ -124,7 +125,7 @@ def set_grip_threshold(): # Tested
     robot.closearm()
     time.sleep(3)
     grip_thresh = calc_image()
-    time.sleep(3)
+    time.sleep(1)
     robot.openarm()
     robot.center() 
     time.sleep(1)
@@ -138,22 +139,26 @@ def is_gripped(): # Tested
     # else: return False
     val = calc_image()
     print('CURRENT THRESHOLD: ',val)
-    if val > (grip_thresh + 3) or val < (grip_thresh - 3): return True
+    if val > (grip_thresh + 5): return True
     else: return False
 
 def save_target_coords(): # Untested
+    global target_coords
     target_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
 
 def save_center_coords():# Untested
+    global center_coords
     center_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
 
-def flash_green():# Untested
-    robot._sendcommand('led control comp bottom_all r 0 g 255 b 0 effect blink')
+def flash_green():# Tested
+    robot._sendcommand('led control comp all r 0 g 255 b 0 effect blink')
     time.sleep(5)
+    robot._sendcommand('led control comp all r 255 g 255 b 255 effect solid')
 
-def flash_red():# Untested
-    robot._sendcommand('led control comp bottom_all r 255 g 0 b 0 effect blink')
+def flash_red():# Tested
+    robot._sendcommand('led control comp all r 255 g 0 b 0 effect blink')
     time.sleep(5)
+    robot._sendcommand('led control comp all r 255 g 255 b 255 effect solid')
 
 
 binary_lock = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
@@ -258,17 +263,21 @@ def rescue_loop(result): # Untested
     else:
         robot.openarm()
         time.sleep(3)
-        robot.move('x 0.1 vxy 0.15') # inch forward. Check for a better way.
+        robot.move('x 0.04 vxy 0.15') # inch forward. Check for a better way.
+        waitToStill()
         return False
+
 
 tmp_frame = None # Currently not used anywhere. Can delete later.
 
 def s_and_r(targets): # target is a list
-    global tmp_frame
+    global tmp_frame, target_cats
+    robot._sendcommand('led control comp all r 255 g 255 b 255 effect solid')
     target_cats = targets
     moveforward(0.4)
     save_center_coords()
     robot.rotate('-135')
+    # robot.rotate('-90') # if binary classifier fails
     robot.startvideo()
     # Search loop
     while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
@@ -290,11 +299,11 @@ def s_and_r(targets): # target is a list
         elif search_completed is False:
             if binary_lock is False:
                 cropped_frame = crop_frame_by(tmp_frame,7)
-                result = detect_binary(cropped_frame) # BINARY CLASSIFIER
+                result = binary_detect(cropped_frame) # BINARY CLASSIFIER
                 lock_on_loop(result)
             else:
                 cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
-                result = detect_object(tmp_frame) # OBJECT DETECTOR.. 
+                result = object_detect(tmp_frame) # OBJECT DETECTOR.. 
                 search_completed = search_loop(result)
         elif pickup_completed is False:
             if pickup_setup is False:
@@ -306,7 +315,7 @@ def s_and_r(targets): # target is a list
                     # break
                 else: align(target_coords) # align robot to the coordinates it saved when it detected the correct doll
                 pickup_setup = True
-            result = detect_object(tmp_frame,3,crop_bot=True) # OBJECT DETECTOR
+            result = object_detect(tmp_frame,3,crop_bot=True) # OBJECT DETECTOR
             pickup_completed = rescue_loop(result)            
         else:
             robot.exit()
@@ -318,5 +327,26 @@ def s_and_r(targets): # target is a list
             print("Quitting")
             robot.exit()
             break
-text = ""
-s_and_r(process_text(text))
+# text = ""
+# s_and_r(process_text(text))
+
+# TEST ONLY FUNCTIONS REMOVE WHEN COMP STARTS
+def start_video():
+    robot.startvideo()
+    # Search loop
+    while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
+        pass
+def test_claw_algo():
+    
+    robot.closearm()
+    time.sleep(3)
+    if is_gripped(): # need to test
+        robot.movearm('x 0 y 50')
+        flash_green()
+        return True
+    else:
+        robot.openarm()
+        time.sleep(3)
+        robot.move('x 0.04 vxy 0.1') # inch forward. Check for a better way.
+        waitToStill()
+        return False

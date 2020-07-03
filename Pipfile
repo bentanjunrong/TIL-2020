@@ -23,6 +23,7 @@ scikit-multilearn = "*"
 pypng = "*"
 opencv-contrib-python = "*"
 imutils = "*"
+yolov4 = "*"
 
 [requires]
 python_version = "3.6"

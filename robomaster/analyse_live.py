@@ -1,6 +1,6 @@
 import png
 import cv2
-from Tello_api import *
+from utils.Tello_api import *
 from EP_PFscript import navigate_start_to_end
 
 THRESHOLD = 80                              # black threshold

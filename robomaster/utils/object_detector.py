@@ -1,17 +1,15 @@
 import cv2
 import colorsys
 import numpy as np
-from yolov4.tf import YOLOv4 # need to edit /utility/predict.py
-## line 140 change to: return np.concatenate(bboxes, axis=0) if bboxes else []
-## line 207 add: if not len(bboxes): return []
+from yolov4.tf import YOLOv4
 
 DETECT_THRES = 0.2
 
 # load yolo model
 yolo = YOLOv4()
-yolo.classes = "../models/custom_data/custom.names"
+yolo.classes = "../../models/custom_data/custom.names"
 yolo.make_model()
-yolo.load_weights("../models/yolov4-custom_best.weights", weights_type="yolo")
+yolo.load_weights("../../models/yolov4-custom_best.weights", weights_type="yolo")
 
 def detect_object(frame):
     res = { "detect": 0, "dist": None, "class": 0 }
@@ -125,17 +123,17 @@ def draw_bbox(image: np.ndarray, bboxes: np.ndarray, classes: dict):
 
     return image
 
-cv2.namedWindow('fk this shit', cv2.WINDOW_NORMAL)
-cap = cv2.VideoCapture('TIL_vidtest.mp4')
-
-while not cap.isOpened():
-    cap = cv2.VideoCapture('TIL_vidtest.mp4')
-    print("loading video...")
-    # esc to close stream
-    if cv2.waitKey(16) == 27:
-        break
-
 #### Commented all these out cos they will get triggered during import in EP_s_and_r.py
+# cv2.namedWindow('fk this shit', cv2.WINDOW_NORMAL)
+# cap = cv2.VideoCapture('../TIL_vidtest.mp4')
+
+# while not cap.isOpened():
+#     cap = cv2.VideoCapture('../TIL_vidtest.mp4')
+#     print("loading video...")
+#     # esc to close stream
+#     if cv2.waitKey(16) == 27:
+#         break
+
 # cnt = 0
 # while cap.isOpened():
 
@@ -153,13 +151,16 @@ while not cap.isOpened():
 #     # stop the program if reached end of video
 #     if not hasFrame: break
 
-#     # analyse and return res
-#     res = detect_object(frame)
-#     print(res)
+#     try:
+#         # analyse and return res
+#         res = detect_object(frame)
+#         print(res)
 
-#     # analyse and draw - comment out to improve performance
-#     bboxes = yolo.predict(frame)
-#     frame = draw_bbox(frame, bboxes, yolo.classes)
+#         # analyse and draw - comment out to improve performance
+#         bboxes = yolo.predict(frame)
+#         frame = draw_bbox(frame, bboxes, yolo.classes)
+#     except:
+#         pass
 
 #     # Write the frame with the detection boxes
 #     cv2.imshow('fk this shit', frame)

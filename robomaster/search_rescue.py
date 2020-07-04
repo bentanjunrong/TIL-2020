@@ -195,9 +195,16 @@ def flash_red():# Tested
 
 
 
-
 def lock_on_loop(result): # Untested
     if result: # doll detected
+        cnt = 0
+        while cnt < 5:
+            cropped_frame = crop_frame_by(robot.frame,7)
+            tmp = binary_detect(cropped_frame) # BINARY CLASSIFIER
+            if tmp:
+                cnt += 1
+                continue
+            return
         binary_lock = True
     else: 
         robot.rotate('5') # assuming left-to-right sweep
@@ -436,6 +443,7 @@ def binary_classifier_test():
         if tmp_frame is None: continue
         cropped_frame = crop_frame_by(tmp_frame,7)
         cv2.imshow('binary test',cropped_frame)
+        cv2.waitKey(10)
         result = binary_detect(cropped_frame)
 
         print(result)

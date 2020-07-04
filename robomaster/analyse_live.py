@@ -2,7 +2,7 @@ import png
 import cv2
 import json
 from utils.Tello_api import *
-from EP_PFscript import navigate_start_to_end
+from navigate_path import navigate_start_to_end
 from map_to_path.occupancy_map_8n import plot_path
 
 THRESHOLD = 80                              # black threshold

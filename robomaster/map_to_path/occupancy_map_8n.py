@@ -1,0 +1,58 @@
+from gridmap import OccupancyGridMap
+import matplotlib.pyplot as plt
+from a_star import a_star
+from utils import plot_path
+import pytesseract
+from pytesseract import Output
+import cv2
+
+def plot_path(frame):
+    # convert to png?
+
+    # plot path
+
+if __name__ == '__main__':
+    # load the map
+    impath = 'maps/try8.png'
+    gmap = OccupancyGridMap.from_png(impath, 1)
+
+    # find and set a start and an end node (in meters)
+    img = cv2.imread(impath)
+    d = pytesseract.image_to_data(img, output_type=Output.DICT)
+    n_boxes = len(d['level'])
+    for i in range(n_boxes):
+        (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    cv2.imshow('img', img)
+    start_node = (0, 0)
+    goal_node = (0, 0)
+
+        # xmin, xmax, ymin, ymax = tup[2]
+        # if tup[3] == 's':
+        #     start_node = (xmin+xmax//2, ymin+ymax//2)
+        # elif tup[3] == 'e':
+        #     goal_node = (xmin+xmax//2, ymin+ymax//2)
+
+    print(start_node, goal_node)
+    start_node = (0, 0)
+    goal_node = (0, 0)
+    # run A*
+    path, path_px = a_star(start_node, goal_node, gmap, movement='4N')
+
+    gmap.plot()
+
+    if path:
+        # plot resulting path in pixels over the map
+        plot_path(path_px)
+    else:
+        print('Goal is not reachable')
+
+        # plot start and goal points over the map (in pixels)
+        start_node_px = gmap.get_index_from_coordinates(start_node[0], start_node[1])
+        goal_node_px = gmap.get_index_from_coordinates(goal_node[0], goal_node[1])
+
+        plt.plot(start_node_px[0], start_node_px[1], 'ro')
+        plt.plot(goal_node_px[0], goal_node_px[1], 'go')
+
+    plt.show()

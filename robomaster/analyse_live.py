@@ -50,7 +50,7 @@ while True:
 
     k = cv2.waitKey(16)
 
-    if k == ord('r'):
+    if k == ord('b'):
         # append to GRID
         if last_val == None: print("Photo has not been taken yet!")
         else: append(last_val)
@@ -78,19 +78,19 @@ while True:
     elif k == ord('o'):
         # append 1
         append(999)
+        print(GRID)
 
     elif k == ord('z'):
         # append 0
         append(0)
+        print(GRID)
 
-    elif k == 'x':
+    elif k == ord('x'):
         # load last image to occupancy modeland imwrite to com the res
-        if last_frame == None: print("Photo has not been taken yet!")
-        else:
-            print("Plotting path on last frame taken....")
-            plot_path(last_frame, START_NODE, END_NODE)
+        print("Plotting path on last frame taken....")
+        plot_path(last_frame, START_NODE, END_NODE)
 
-    elif k == 'g':
+    elif k == ord('m'):
         # view grid
         print(GRID)
 

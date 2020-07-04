@@ -346,7 +346,7 @@ def s_and_r(targets): # target is a list
                 lock_on_loop(result)
             else:
                 cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
-                result = object_detect(tmp_frame) # OBJECT DETECTOR.. 
+                result = object_detect(cropped_frame) # OBJECT DETECTOR.. 
                 search_completed = search_loop(result)
         elif pickup_completed is False:
             if pickup_setup is False:
@@ -358,7 +358,8 @@ def s_and_r(targets): # target is a list
                     # break
                 else: align(target_coords) # align robot to the target doll coordinates
                 pickup_setup = True
-            result = object_detect(tmp_frame,3,crop_bot=True) # OBJECT DETECTOR
+            cropped_frame = crop_frame_by(tmp_frame,3,crop_bot=True)
+            result = object_detect(cropped_frame) # OBJECT DETECTOR
             pickup_completed = rescue_loop(result)            
         else:
             robot.exit()
@@ -394,3 +395,17 @@ def test_claw_algo():
         robot.move('x 0.04 vxy 0.1') # inch forward. Check for a better way.
         waitToStill()
         return False
+def test_object_centering():
+    while True:
+        tmp_frame = robot.frame
+        cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
+        result = object_detect(cropped_frame)
+        dist = float(result['dist'])
+        print('DIST: ')
+        if dist > dist_thresh or dist < -dist_thresh:
+
+            turn_angle = int(dist*turn_const) # if dist is negative, will turn right
+            print('ROBOT WILL TURN {} DEGREES'.format(turn_angle))
+            robot.rotate(str(turn_angle))
+            waitToStill()
+        else: break

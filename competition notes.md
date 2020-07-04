@@ -12,6 +12,8 @@
    2. `search_loop()` > object detector
    3. `rescue_loop()` > object detector
 
+**ENSURE ALL TEST CODE IS COMMENTED OUT**
+
 
 # Constant variables to fine tune
 ## Path Navigator

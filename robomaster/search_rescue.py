@@ -9,23 +9,32 @@ from utils.nlp_robo import process_text
 
 robot = Robot(findrobotIP())
 target_cats = 0
-target_coords = []
 center_coords = []
-partials_coords = []
 grip_thresh = 0
 boundaries = [0,0.93,-0.75,0.65] # xmin, xmax, ymin, ymax in meters
 
-# For lock on
+full_coords = [] # fully correct detections go here
+partials_coords = [] # partially correct detections go here
+none_coords = [] # detections with no match go here
+
+target_coords = [] # Rescue target coords
+red_coords = [] # Compiled list of bad match coords. If target_coords is empty, a coord will be randomly chosen for rescue from here.
+
+
+# For Lock On
 binary_lock = False # when an object is detected, set to True so that if subsequently there are no detections, the robot doesn't try to rotate. Will be reset once tagging is complete
 
-# For object detection
+
+# For Object detection
 tag_count = 0
 turn_const = 0.02 # UNTESTED
 dist_thresh = 45 # UNTESTED
 object_lock = False
 no_detect_counter = 0
 
+
 tmp_frame = None # Currently not used anywhere. Can delete later.
+
 
 def waitToStill(): #tested
     time.sleep(0.5)
@@ -152,14 +161,19 @@ def is_gripped(): # Tested
     print('CURRENT THRESHOLD: ',val)
     if val > (grip_thresh + 5): return True
     else: return False
+def save_current_coords():
+    coords = robot._sendcommand('chassis position ?').split(' ')[:3]
+    coords = map(float,coords)
+    return coords   
+    
 
 def save_target_coords(): # Untested
     global target_coords
-    target_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
+    target_coords = save_current_coords()
 
 def save_center_coords():# Untested
     global center_coords
-    center_coords = robot._sendcommand('chassis position ?').split(' ')[:3]
+    center_coords = save_current_coords()
 
 def flash_green():# Tested
     robot._sendcommand('led control comp all r 0 g 255 b 0 effect blink')
@@ -181,19 +195,44 @@ def lock_on_loop(result): # Untested
         robot.rotate('5') # assuming left-to-right sweep
         waitToStill()
 
-def is_full_match(cat): # Untested
+
+
+def check_match(cats): # Untested
     matches = []
     for target_cat in target_cats:
-        if target_cat in cat:
+        if target_cat in cats:
             matches.append(target_cat)
     if len(matches) == len(target_cats):
-        return True
+        full_coords.append(save_current_coords())
+        return 2
     
     elif len(matches): 
-        partials_coords.append(robot._sendcommand('chassis position ?').split(' ')[:3])
-    return False
-
+        partials_coords.append(save_center_coords())
+        return 1
+    else: 
+        none_coords.append(save_center_coords())
+        return 0
         
+def tag_dolls():
+    global red_coords
+    if full_coords:
+        target_coords = full_coords.pop()
+    else:
+        if partials_coords:
+            target_coords = partials_coords.pop()
+    all_coords = [full_coords,partials_coords,none_coords]
+    for i in all_coords:
+        if not i:
+            continue
+        else:
+            for j in i:
+                red_coords.append(j)
+    for coords in red_coords:
+        align(coords)
+        flash_red()
+    if target_coords:
+        align(target_coords)
+        flash_green()
 
 
 
@@ -224,16 +263,12 @@ def search_loop(result): # Untested
         moveforward(0.1)
         return False
     else:
-        if is_full_match(cat): 
-            save_target_coords()
-            flash_green()
-        else:
-            flash_red()
-        
+        check_match(cat)
         tag_count += 1
         object_lock = False
         binary_lock = False
         if tag_count == 3:
+            tag_dolls()
             return True
         else: 
             
@@ -318,10 +353,10 @@ def s_and_r(targets): # target is a list
                 rescue_grip()
                 if not target_coords:
                     print('No target found during search phase. Picking up closest doll.')
-                    align(partials_coords[0])
+                    align(red_coords[2])
                     # robot.exit()
                     # break
-                else: align(target_coords) # align robot to the coordinates it saved when it detected the correct doll
+                else: align(target_coords) # align robot to the target doll coordinates
                 pickup_setup = True
             result = object_detect(tmp_frame,3,crop_bot=True) # OBJECT DETECTOR
             pickup_completed = rescue_loop(result)            
@@ -338,23 +373,24 @@ def s_and_r(targets): # target is a list
 # text = ""
 # s_and_r(process_text(text))
 
+
 # TEST ONLY FUNCTIONS REMOVE WHEN COMP STARTS
-# def start_video():
-#     robot.startvideo()
-#     # Search loop
-#     while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
-#         pass
-# def test_claw_algo():
+def start_video():
+    robot.startvideo()
+    # Search loop
+    while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
+        pass
+def test_claw_algo():
     
-#     robot.closearm()
-#     time.sleep(3)
-#     if is_gripped(): # need to test
-#         robot.movearm('x 0 y 50')
-#         flash_green()
-#         return True
-#     else:
-#         robot.openarm()
-#         time.sleep(3)
-#         robot.move('x 0.04 vxy 0.1') # inch forward. Check for a better way.
-#         waitToStill()
-#         return False
+    robot.closearm()
+    time.sleep(3)
+    if is_gripped(): # need to test
+        robot.movearm('x 0 y 50')
+        flash_green()
+        return True
+    else:
+        robot.openarm()
+        time.sleep(3)
+        robot.move('x 0.04 vxy 0.1') # inch forward. Check for a better way.
+        waitToStill()
+        return False

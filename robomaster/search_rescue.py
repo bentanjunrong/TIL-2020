@@ -37,6 +37,13 @@ NO_DETECT_CNT_MAX = 10
 tmp_frame = None # Currently not used anywhere. Can delete later.
 
 
+def expandBoundaries(val):
+    global boundaries
+    boundaries[0] -= val
+    boundaries[1] += val
+    boundaries[2] -= val
+    boundaries[3] += val
+
 def waitToStill(): #tested
     time.sleep(0.5)
     still = False
@@ -257,6 +264,10 @@ def search_loop(result): # Untested
     if dist > dist_thresh or dist < -dist_thresh:
 
         turn_angle = int(dist*turn_const) # if dist is negative, will turn right
+        if turn_angle < 5 and turn_angle > 0:
+            turn_angle = 5
+        elif turn_angle > -5 and turn_angle < 0:
+            turn_angle = -5
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
@@ -295,6 +306,10 @@ def rescue_loop(result): # Untested
 
     if dist > dist_thresh or dist < -dist_thresh:
         turn_angle = dist*turn_const # if dist is negative, will turn right
+        if turn_angle < 5 and turn_angle > 0:
+            turn_angle = 5
+        elif turn_angle > -5 and turn_angle < 0:
+            turn_angle = -5
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
@@ -312,10 +327,11 @@ def rescue_loop(result): # Untested
         return False
 
 
-
+search_completed = False
+pickup_completed = False
 
 def s_and_r(targets): # target is a list
-    global tmp_frame, target_cats
+    global tmp_frame, target_cats, search_completed,pickup_completed
     robot._sendcommand('led control comp all r 255 g 255 b 255 effect solid')
     target_cats = targets
     moveforward(0.4)
@@ -328,8 +344,7 @@ def s_and_r(targets): # target is a list
         pass
 
     initial_setup = False
-    search_completed = False
-    pickup_completed = False
+    
     pickup_setup = False
     while True:
         cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
@@ -352,6 +367,7 @@ def s_and_r(targets): # target is a list
         elif pickup_completed is False:
             if pickup_setup is False:
                 rescue_grip()
+                expandBoundaries(0.2)
                 if not target_coords:
                     print('No target found during search phase. Picking up closest doll.')
                     align(red_coords[2])
@@ -413,3 +429,14 @@ def test_object_centering():
                 waitToStill()
             else: break
         except: pass
+
+def binary_classifier_test():
+    while True:
+        tmp_frame = robot.frame
+        if tmp_frame is None: continue
+        cropped_frame = crop_frame_by(tmp_frame,7)
+        cv2.imshow('binary test',cropped_frame)
+        result = binary_detect(cropped_frame)
+
+        print(result)
+

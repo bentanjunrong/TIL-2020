@@ -192,7 +192,7 @@ class OccupancyGridMap:
         plt.draw()
 
     @staticmethod
-    def from_png(filename, cell_size):
+    def from_png(filename, cell_size, splash=False):
         """
         Create an OccupancyGridMap from a png image
         :param filename: the image filename
@@ -201,7 +201,7 @@ class OccupancyGridMap:
         """
         ogm_data = png_to_ogm(filename, normalized=True)
 
-        ogm_data = process(ogm_data) # splash
+        if splash: ogm_data = process(ogm_data) # splash
         # ogm_data = compress(ogm_data) # compress
 
         ## print out occupancy grid

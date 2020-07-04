@@ -90,6 +90,20 @@ def turn_to_angle(final_angle): #tested
     robot.rotate(str(angle_to_turn))
     waitToStill()
 
+def turn_in_steps(final_angle):
+    rotation_step = 5
+    current_angle = get_current_angle()
+    angle_to_turn = final_angle - current_angle
+    if angle_to_turn < 0: rotation_step *= -1
+    turn_divisions = angle_to_turn // 5
+
+    for i in range(turn_divisions):
+        robot.rotate(str(rotation_step))
+        waitToStill()
+        time.sleep(1.5)
+    turn_to_angle(final_angle)
+
+
 def nearest_90_angle(): # tested
     angle = get_current_angle()
     if -135 < angle < -45: return -90
@@ -245,7 +259,6 @@ def tag_dolls():
 
 
 
-
 def search_loop(result): # Untested
     global no_detect_counter, object_lock
     detected = result['detect']
@@ -286,7 +299,11 @@ def search_loop(result): # Untested
             
             align(center_coords)
             if tag_count == 1: 
-            else : robot.rotate('90')
+                turn_to_angle(-45)
+                turn_in_steps(0)
+            else : 
+                turn_to_angle(45)
+                turn_in_steps(90)
             waitToStill()
             moveforward(0.3)
             return False
@@ -338,7 +355,8 @@ def s_and_r(targets): # target is a list
     moveforward(0.4)
     save_center_coords()
     
-    robot.rotate('-90') # if binary classifier fails
+    robot.rotate('-135') 
+    turn_in_steps(-90)
     moveforward(0.3)
     robot.startvideo()
     # Search loop
@@ -358,14 +376,14 @@ def s_and_r(targets): # target is a list
             initial_setup = set_grip_threshold()
         
         elif search_completed is False:
-            if binary_lock is False:
-                cropped_frame = crop_frame_by(tmp_frame,7)
-                result = binary_detect(cropped_frame) # BINARY CLASSIFIER
-                lock_on_loop(result)
-            else:
-                cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
-                result = object_detect(cropped_frame) # OBJECT DETECTOR.. 
-                search_completed = search_loop(result)
+            # if binary_lock is False:
+            #     cropped_frame = crop_frame_by(tmp_frame,7)
+            #     result = binary_detect(cropped_frame) # BINARY CLASSIFIER
+            #     lock_on_loop(result)
+            # else:
+            cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
+            result = object_detect(cropped_frame) # OBJECT DETECTOR.. 
+            search_completed = search_loop(result)
         elif pickup_completed is False:
             if pickup_setup is False:
                 rescue_grip()

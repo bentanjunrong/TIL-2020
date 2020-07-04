@@ -1,7 +1,7 @@
 from gridmap import OccupancyGridMap
 import matplotlib.pyplot as plt
 from a_star import a_star
-from utils import plot_path
+from utils_ogm import plot_path
 import cv2
 import numpy
 

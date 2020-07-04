@@ -2,8 +2,8 @@ import png
 import cv2
 import json
 from utils.Tello_api import *
-from navigate_path import navigate_start_to_end
-from map_to_path.occupancy_map_8n import plot_path
+# from navigate_path import navigate_start_to_end
+from occupancy_map_8n import plot_path
 
 THRESHOLD = 80                              # black threshold
 LENGTH = 9                                  # arena length
@@ -13,7 +13,7 @@ HEIGHT = 3                                  # arena height
 START_NODE = (0,0)
 END_NODE = (0,0)
 
-with open('robomaster/listfile.txt', 'r') as filehandle:
+with open('listfile.txt', 'r') as filehandle:
     temp = json.load(filehandle)
     GRID, ROW, COL = temp[0], temp[1], temp[2]
 
@@ -30,7 +30,7 @@ def append(val):
     GRID[ROW % HEIGHT][COL % LENGTH] = 1 if val > THRESHOLD else 0
     COL += 1
     ROW = ROW + 1 if not COL % LENGTH else ROW
-    with open('robomaster/listfile.txt', 'w') as filehandle:
+    with open('listfile.txt', 'w') as filehandle:
         json.dump([GRID, ROW, COL], filehandle)
 
 # load drone
@@ -54,6 +54,7 @@ while True:
         # append to GRID
         if last_val == None: print("Photo has not been taken yet!")
         else: append(last_val)
+        print(GRID)
 
     elif k == ord('p'): # every pic print the grid
         # calc whiteness
@@ -64,6 +65,7 @@ while True:
         print('whiteness is', last_val, '..........0 (pitch black) and 255 (bright white)')
         tmp = 1 if last_val > THRESHOLD else 0
         print('appending val is ', tmp)
+        
 
     elif k == ord('r'):
         # r revert last, if exists
@@ -101,7 +103,7 @@ while True:
         res = []
         for i in range(len(GRID)):
             res.append(GRID[i][::-1] if i % 2 else GRID[i])
-        navigate_start_to_end(res)
+        # navigate_start_to_end(res)
         break
 
     elif k != -1: # press wasdqe to control tello. u,j to control height. t,l to takeoff and land

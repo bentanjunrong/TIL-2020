@@ -20,8 +20,8 @@ start_disp = 0.5 # the robot is roughly 40cm south of the center of the junction
 seg_sep = 0.4 # distance between center of two junctions divide by 2 (0.8/2) Untested
 start_angle = 0 # robot starts facing the search and rescue area. DO NOT CHANGE. Breaks align() if not 0
 end_angle = 0 # robot has to end facing the search and rescue area
-start_loc = (2,4) # grid coordinates of the Start marker 
-end_loc = (0,6) # grid coordinates of the End marker
+start_loc = (2,6) # grid coordinates of the Start marker 
+end_loc = (0,2) # grid coordinates of the End marker
 angle_map = { # for turn_to_next
     (-1,0): 0,
     (0,1): 90,

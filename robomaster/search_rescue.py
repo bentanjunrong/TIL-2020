@@ -27,10 +27,11 @@ binary_lock = False # when an object is detected, set to True so that if subsequ
 
 # For Object detection
 tag_count = 0
-turn_const = 0.02 # UNTESTED
-dist_thresh = 45 # UNTESTED
+turn_const = 0.06 # 0.02 UNTESTED
+dist_thresh = 30 # 45 # UNTESTED
 object_lock = False
 no_detect_counter = 0
+NO_DETECT_CNT_MAX = 10
 
 
 tmp_frame = None # Currently not used anywhere. Can delete later.
@@ -244,7 +245,7 @@ def search_loop(result): # Untested
     dist = result['dist']
     cat = result['class'] # if cat is not 0, this is a list
     if detected is False: 
-        if object_lock is False or no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
+        if object_lock is False or no_detect_counter > NO_DETECT_CNT_MAX: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
             moveforward(0.1)
         else: # keep still
             no_detect_counter +=1
@@ -284,7 +285,7 @@ def rescue_loop(result): # Untested
     detected = result['detect']
     dist = result['dist']
     if detected is False: 
-        if no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
+        if no_detect_counter > NO_DETECT_CNT_MAX: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
             moveforward(0.05)
         else: # keep still
             no_detect_counter +=1
@@ -398,14 +399,17 @@ def test_claw_algo():
 def test_object_centering():
     while True:
         tmp_frame = robot.frame
+        if tmp_frame is None: continue
         cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
         result = object_detect(cropped_frame)
-        dist = float(result['dist'])
-        print('DIST: ')
-        if dist > dist_thresh or dist < -dist_thresh:
+        try:
+            dist = float(result['dist'])
+            print('DIST: ', dist)
+            if dist > dist_thresh or dist < -dist_thresh:
 
-            turn_angle = int(dist*turn_const) # if dist is negative, will turn right
-            print('ROBOT WILL TURN {} DEGREES'.format(turn_angle))
-            robot.rotate(str(turn_angle))
-            waitToStill()
-        else: break
+                turn_angle = int(dist*turn_const) # if dist is negative, will turn right
+                print('ROBOT WILL TURN {} DEGREES'.format(turn_angle))
+                robot.rotate(str(turn_angle))
+                waitToStill()
+            else: break
+        except: pass

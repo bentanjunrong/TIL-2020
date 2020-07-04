@@ -65,7 +65,7 @@ def object_detect(frame):
         res["dist"].append(centre_bb[0] - centre[0])
         res["class"].append(class_id)
 
-        print('Dist from centre:', centre_bb[0] - centre[0], ", Class:", class_id, "Confidence:", cls_pred)
+        print('Dist from centre:', centre_bb[0] - centre[0], ", Class:", class_id, "Height:", y_min, y_max)
 
     res["dist"] = sum(res["dist"]) / len(res["dist"])
     if height*HEIGHT_THRES < (y_range[1] - y_range[0]): res["class"] = 0

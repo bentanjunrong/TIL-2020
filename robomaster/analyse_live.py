@@ -10,6 +10,8 @@ LENGTH = 9                                  # arena length
 HEIGHT = 3                                  # arena height
 # GRID = [[-1]*LENGTH for i in range(HEIGHT)] # occupancy grid
 # ROW, COL = 0, 0                             # current grid position
+START_NODE = (0,0)
+END_NODE = (0,0)
 
 with open('robomaster/listfile.txt', 'r') as filehandle:
     temp = json.load(filehandle)
@@ -84,7 +86,7 @@ while True:
         if last_frame == None: print("Photo has not been taken yet!")
         else:
             print("Plotting path on last frame taken....")
-            plot_path(last_frame)
+            plot_path(last_frame, START_NODE, END_NODE)
 
     elif k == 'g':
         # view grid

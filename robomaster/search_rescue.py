@@ -27,14 +27,22 @@ binary_lock = False # when an object is detected, set to True so that if subsequ
 
 # For Object detection
 tag_count = 0
-turn_const = 0.02 # UNTESTED
-dist_thresh = 45 # UNTESTED
+turn_const = 0.06 # 0.02 UNTESTED
+dist_thresh = 30 # 45 # UNTESTED
 object_lock = False
 no_detect_counter = 0
+NO_DETECT_CNT_MAX = 10
 
 
 tmp_frame = None # Currently not used anywhere. Can delete later.
 
+
+def expandBoundaries(val):
+    global boundaries
+    boundaries[0] -= val
+    boundaries[1] += val
+    boundaries[2] -= val
+    boundaries[3] += val
 
 def waitToStill(): #tested
     time.sleep(0.5)
@@ -187,9 +195,16 @@ def flash_red():# Tested
 
 
 
-
 def lock_on_loop(result): # Untested
     if result: # doll detected
+        cnt = 0
+        while cnt < 5:
+            cropped_frame = crop_frame_by(robot.frame,7)
+            tmp = binary_detect(cropped_frame) # BINARY CLASSIFIER
+            if tmp:
+                cnt += 1
+                continue
+            return
         binary_lock = True
     else: 
         robot.rotate('5') # assuming left-to-right sweep
@@ -244,7 +259,7 @@ def search_loop(result): # Untested
     dist = result['dist']
     cat = result['class'] # if cat is not 0, this is a list
     if detected is False: 
-        if object_lock is False or no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
+        if object_lock is False or no_detect_counter > NO_DETECT_CNT_MAX: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
             moveforward(0.1)
         else: # keep still
             no_detect_counter +=1
@@ -256,6 +271,10 @@ def search_loop(result): # Untested
     if dist > dist_thresh or dist < -dist_thresh:
 
         turn_angle = int(dist*turn_const) # if dist is negative, will turn right
+        if turn_angle < 5 and turn_angle > 0:
+            turn_angle = 5
+        elif turn_angle > -5 and turn_angle < 0:
+            turn_angle = -5
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
@@ -284,7 +303,7 @@ def rescue_loop(result): # Untested
     detected = result['detect']
     dist = result['dist']
     if detected is False: 
-        if no_detect_counter > 5: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
+        if no_detect_counter > NO_DETECT_CNT_MAX: # Either the object detection model hasn't found the object yet or it has but it has been 5 predictions since we had a detection
             moveforward(0.05)
         else: # keep still
             no_detect_counter +=1
@@ -294,6 +313,10 @@ def rescue_loop(result): # Untested
 
     if dist > dist_thresh or dist < -dist_thresh:
         turn_angle = dist*turn_const # if dist is negative, will turn right
+        if turn_angle < 5 and turn_angle > 0:
+            turn_angle = 5
+        elif turn_angle > -5 and turn_angle < 0:
+            turn_angle = -5
         robot.rotate(str(turn_angle))
         waitToStill()
         return False
@@ -311,10 +334,11 @@ def rescue_loop(result): # Untested
         return False
 
 
-
+search_completed = False
+pickup_completed = False
 
 def s_and_r(targets): # target is a list
-    global tmp_frame, target_cats
+    global tmp_frame, target_cats, search_completed,pickup_completed
     robot._sendcommand('led control comp all r 255 g 255 b 255 effect solid')
     target_cats = targets
     moveforward(0.4)
@@ -327,8 +351,7 @@ def s_and_r(targets): # target is a list
         pass
 
     initial_setup = False
-    search_completed = False
-    pickup_completed = False
+    
     pickup_setup = False
     while True:
         cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
@@ -351,6 +374,7 @@ def s_and_r(targets): # target is a list
         elif pickup_completed is False:
             if pickup_setup is False:
                 rescue_grip()
+                expandBoundaries(0.2)
                 if not target_coords:
                     print('No target found during search phase. Picking up closest doll.')
                     align(red_coords[2])
@@ -398,14 +422,29 @@ def test_claw_algo():
 def test_object_centering():
     while True:
         tmp_frame = robot.frame
+        if tmp_frame is None: continue
         cropped_frame = crop_frame_by(tmp_frame,2,crop_bot=True)
         result = object_detect(cropped_frame)
-        dist = float(result['dist'])
-        print('DIST: ')
-        if dist > dist_thresh or dist < -dist_thresh:
+        try:
+            dist = float(result['dist'])
+            print('DIST: ', dist)
+            if dist > dist_thresh or dist < -dist_thresh:
 
-            turn_angle = int(dist*turn_const) # if dist is negative, will turn right
-            print('ROBOT WILL TURN {} DEGREES'.format(turn_angle))
-            robot.rotate(str(turn_angle))
-            waitToStill()
-        else: break
+                turn_angle = int(dist*turn_const) # if dist is negative, will turn right
+                print('ROBOT WILL TURN {} DEGREES'.format(turn_angle))
+                robot.rotate(str(turn_angle))
+                waitToStill()
+            else: break
+        except: pass
+
+def binary_classifier_test():
+    while True:
+        tmp_frame = robot.frame
+        if tmp_frame is None: continue
+        cropped_frame = crop_frame_by(tmp_frame,7)
+        cv2.imshow('binary test',cropped_frame)
+        cv2.waitKey(10)
+        result = binary_detect(cropped_frame)
+
+        print(result)
+

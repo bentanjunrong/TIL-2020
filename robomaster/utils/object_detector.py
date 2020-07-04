@@ -2,7 +2,7 @@ import cv2
 import colorsys
 import numpy as np
 from yolov4.tf import YOLOv4 # Need to change detection threshold in utilities/predict
-from EP_api import Robot, findrobotIP # COMMENT OUT WHEN DONE TESTING
+# from EP_api import Robot, findrobotIP # COMMENT OUT WHEN DONE TESTING
 
 
 DETECT_THRES = 0.1
@@ -17,7 +17,10 @@ def object_detect(frame):
     res = { "detect": 0, "dist": None, "class": 0 }
 
     # analyse frame
-    bboxes = yolo.predict(frame)
+    try:
+        bboxes = yolo.predict(frame)
+    except:
+        bboxes = []
     if len(bboxes): print(max([x[5] for x in bboxes]))
     if not len(bboxes) or max([x[5] for x in bboxes]) < DETECT_THRES: return res
 
@@ -44,7 +47,7 @@ def object_detect(frame):
     
     # process bbs
     seen = []
-    y_range = [0,0] # y_min of the highest bbox and y_max of the lowest bbox
+    y_range = [9999999,9999999] # y_min of the highest bbox and y_max of the lowest bbox
 
     for bbox in bboxes:
         c_x = int(bbox[0])
@@ -54,7 +57,7 @@ def object_detect(frame):
         y_min = c_y - bbox_height
         y_max = c_y + bbox_height
         if y_min < y_range[0]: y_range[0] = y_min
-        if y_max < y_range[1] : y_range[0] = y_max
+        if y_max < y_range[1] : y_range[1] = y_max
 
         class_id = int(bbox[4]) + 1 # + 1 because original range is 0 to 4
         cls_pred = bbox[5]
@@ -68,7 +71,7 @@ def object_detect(frame):
         print('Dist from centre:', centre_bb[0] - centre[0], ", Class:", class_id, "Height:", y_min, y_max)
 
     res["dist"] = sum(res["dist"]) / len(res["dist"])
-    if height*HEIGHT_THRES < (y_range[1] - y_range[0]): res["class"] = 0
+    if HEIGHT_THRES > (y_range[1] - y_range[0])/height: res["class"] = 0
     
     return res
 
@@ -141,36 +144,36 @@ def crop_frame_by(frame,crop_by_factor):
     x_right = int((640) + width) #from center
     return frame[0:625,x_left:x_right]
 
-## TEST
-robot = Robot(findrobotIP())
-robot.startvideo()
-robot._sendcommand('robotic_arm moveto x 182 y 0')
-while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
-	pass
+# ## TEST
+# robot = Robot(findrobotIP())
+# robot.startvideo()
+# # robot._sendcommand('robotic_arm moveto x 182 y 0')
+# while robot.frame is None: # this is for video warm up. when frame is received, this loop is exited.
+# 	pass
 
 
-while True:
-    # cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
-    # cv2.imshow('Live video', robot.frame) # access the video feed by robot.frame
-    frame = crop_frame_by(robot.frame,2)
-    try:
-        # analyse and return res
-        res = object_detect(frame)
-        print(res)
+# while True:
+#     # cv2.namedWindow('Live video', cv2.WINDOW_NORMAL)
+#     # cv2.imshow('Live video', robot.frame) # access the video feed by robot.frame
+#     frame = crop_frame_by(robot.frame,2)
+#     try:
+#         # analyse and return res
+#         res = object_detect(frame)
+#         print(res)
 
-        # analyse and draw - comment out to improve performance
-        bboxes = yolo.predict(frame)
-        frame = draw_bbox(frame, bboxes, yolo.classes)
-    except:
-        pass
+#         # analyse and draw - comment out to improve performance
+#         bboxes = yolo.predict(frame)
+#         frame = draw_bbox(frame, bboxes, yolo.classes)
+#     except:
+#         pass
 
-    # Write the frame with the detection boxes
-    cv2.imshow('fk this shit', frame)
-    k = cv2.waitKey(16) & 0xFF
-    if k == 27: # press esc to stop
-        print("Quitting")
-        robot.exit()
-        break
+#     # Write the frame with the detection boxes
+#     cv2.imshow('fk this shit', frame)
+#     k = cv2.waitKey(16) & 0xFF
+#     if k == 27: # press esc to stop
+#         print("Quitting")
+#         robot.exit()
+#         break
 
 #### Commented all these out cos they will get triggered during import in EP_s_and_r.py
 # cv2.namedWindow('fk this shit', cv2.WINDOW_NORMAL)

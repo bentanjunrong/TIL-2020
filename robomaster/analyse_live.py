@@ -1,5 +1,6 @@
 import png
 import cv2
+import json
 from utils.Tello_api import *
 from EP_PFscript import navigate_start_to_end
 from map_to_path.occupancy_map_8n import plot_path
@@ -7,8 +8,12 @@ from map_to_path.occupancy_map_8n import plot_path
 THRESHOLD = 80                              # black threshold
 LENGTH = 9                                  # arena length
 HEIGHT = 3                                  # arena height
-GRID = [[-1]*LENGTH for i in range(HEIGHT)] # occupancy grid
-ROW, COL = 0, 0                             # current grid position
+# GRID = [[-1]*LENGTH for i in range(HEIGHT)] # occupancy grid
+# ROW, COL = 0, 0                             # current grid position
+
+with open('robomaster/listfile.txt', 'r') as filehandle:
+    temp = json.load(filehandle)
+    GRID, ROW, COL = temp[0], temp[1], temp[2]
 
 def calc(frame):
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to grayscale
@@ -23,6 +28,8 @@ def append(val):
     GRID[ROW % HEIGHT][COL % LENGTH] = 1 if val > THRESHOLD else 0
     COL += 1
     ROW = ROW + 1 if not COL % LENGTH else ROW
+    with open('robomaster/listfile.txt', 'w') as filehandle:
+        json.dump([GRID, ROW, COL], filehandle)
 
 # load drone
 tello = Tello()
